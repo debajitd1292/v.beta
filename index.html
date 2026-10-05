@@ -1362,13 +1362,22 @@ function parseShift(shift){
 }
 
 function mergeShiftData(current, next) {
-  const merged = [...current];
+    if (!current || !next) return current;
 
-  for (let i = 1; i < next.length; i++) {
-    merged.push(next[i]); // skip header
-  }
+    const merged = [];
 
-  return merged;
+    const header = [...current[0], ...next[0].slice(1)];
+    merged.push(header);
+
+    for (let i = 1; i < current.length; i++) {
+        const rowCurrent = current[i];
+        const rowNext = next[i] || [];
+
+        const mergedRow = [...rowCurrent, ...rowNext.slice(1)];
+        merged.push(mergedRow);
+    }
+
+    return merged;
 }
 
 function getData(date){
