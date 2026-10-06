@@ -754,7 +754,7 @@ body.dark .badge {
 
 <script>
 
-const DATA_VERSION = "v1";   // 🔁 update when CSV change
+const DATA_VERSION = Date.now();
 
 const now = new Date();
 
@@ -1854,23 +1854,46 @@ function onCategoryChange(){
     renderNext7Days();
 }
 
+function fetchCSV(url, optional = false){
+
+    return fetch(url, { cache: "no-store" })
+        .then(response => {
+
+            if(!response.ok){
+                throw new Error("CSV not found: " + url);
+            }
+
+            return response.text();
+        })
+        .catch(err => {
+
+            console.warn("CSV load failed:", url, err);
+
+            if(optional){
+                return "";
+            }
+
+            throw err;
+        });
+}
+
 function autoRefreshData(){
 
     console.log("🔄 Auto refresh triggered");
 
     Promise.all([
-        fetch(shiftUrl, { cache: "no-store" }).then(r => r.text()),
-        fetch(shiftUrlNext, { cache: "no-store" }).then(r => r.text()),
+        fetchCSV(shiftUrl),
+        fetchCSV(shiftUrlNext, true),
 
-        fetch(holidayUrl, { cache: "no-store" }).then(r => r.text()),
-        fetch(notesUrl, { cache: "no-store" }).then(r => r.text()),
-        fetch(trainingUrl, { cache: "no-store" }).then(r => r.text()),
+        fetchCSV(holidayUrl, true),
+        fetchCSV(notesUrl, true),
+        fetchCSV(trainingUrl, true),
 
-        fetch(nonExecUrl, { cache: "no-store" }).then(r => r.text()),
-        fetch(nonExecUrlNext, { cache: "no-store" }).then(r => r.text()),
+        fetchCSV(nonExecUrl),
+        fetchCSV(nonExecUrlNext, true),
 
-        fetch(seniorityExecUrl, { cache: "no-store" }).then(r => r.text()),
-        fetch(seniorityNonExecUrl, { cache: "no-store" }).then(r => r.text())
+        fetchCSV(seniorityExecUrl, true),
+        fetchCSV(seniorityNonExecUrl, true)
     ])
 
     .then(([
@@ -2013,7 +2036,14 @@ function autoRefreshData(){
 
         console.error("Auto refresh failed:", err);
 
-    });
+        const status = document.getElementById("todayNote");
+
+        if(status){
+          status.innerText =
+              "Unable to refresh latest data. Showing available data.";
+    }
+
+});
 }
 
 function calcHoliday(){
