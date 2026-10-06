@@ -121,7 +121,7 @@ body {
     border: 1px solid rgba(255,255,255,0.15);
 }
 
-.info-bar {			/* ✅ HOD/AIC Sect */
+.info-bar {			/* ✅ HOD/AIC Sec */
     background: linear-gradient(135deg, #1f4e79, #163a5f);
     color: white;
     margin: 10px;
@@ -763,20 +763,10 @@ const year = String(now.getFullYear()).slice(-2);
 
 const monthKey = month + year;
 
-const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-const nextMonth = String(nextDate.getMonth() + 1).padStart(2, '0');
-const nextYear = String(nextDate.getFullYear()).slice(-2);
-
-const nextMonthKey = nextMonth + nextYear;
-
 const baseUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/";
 
 const shiftUrl = baseUrl + "exec/shift_exec_" + monthKey + ".csv?v=" + DATA_VERSION;
 const nonExecUrl = baseUrl + "nonexec/shift_nonexec_" + monthKey + ".csv?v=" + DATA_VERSION;
-const shiftUrlNext = baseUrl + "exec/shift_exec_" + nextMonthKey + ".csv?v=" + DATA_VERSION;
-const nonExecUrlNext = baseUrl + "nonexec/shift_nonexec_" + nextMonthKey + ".csv?v=" + DATA_VERSION;
-
 
 const holidayUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/holiday.csv?v=" + DATA_VERSION;
 const notesUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/notes.csv?v=" + DATA_VERSION;
@@ -853,47 +843,36 @@ function sortBySeniority(list){
 
 Promise.all([
   fetch(shiftUrl).then(r=>r.text()),
-  fetch(shiftUrlNext).then(r=>r.text()),
   fetch(holidayUrl).then(r=>r.text()),
   fetch(notesUrl).then(r=>r.text()),
   fetch(trainingUrl).then(r=>r.text()),
-  fetch(nonExecUrl).then(r=>r.text()),
-  fetch(nonExecUrlNext).then(r=>r.text())
-])
+  fetch(nonExecUrl).then(r=>r.text())
+]).then(([shiftText, holidayText, notesText, trainingText, nonExecText]) => {
 
-.then(([shiftTextCurrent, shiftTextNext, holidayText, notesText, trainingText, nonExecTextCurrent, nonExecTextNext]) => {
+if(!shiftText || shiftText.trim() === ""){
+    document.getElementById("today").innerHTML =
+    "<div style='color:red;font-weight:bold;'>SHIFT DATA NOT LOADED</div>";
+    return;
+}
 
-    if(!shiftTextCurrent || shiftTextCurrent.trim() === ""){
-        document.getElementById("today").innerHTML =
-        "<div style='color:red;font-weight:bold;'>SHIFT DATA NOT LOADED</div>";
-        return;
-    }
+if(!holidayText) holidayText = "";
+if(!notesText) notesText = "";
+if(!trainingText) trainingText = "";
+if(!nonExecText) nonExecText = "";
 
-    if(!holidayText) holidayText = "";
-    if(!notesText) notesText = "";
-    if(!trainingText) trainingText = "";
-    if(!nonExecTextCurrent) nonExecTextCurrent = "";
-    if(!nonExecTextNext) nonExecTextNext = "";
+data = shiftText.split("\n").map(r=>r.replace(/\r/g,"").split(/[,;]/));
 
-    const dataCurrent = shiftTextCurrent.split("\n").map(r => r.replace(/\r/g,"").split(/[,;]/));
-    const dataNext = shiftTextNext.split("\n").map(r => r.replace(/\r/g,"").split(/[,;]/));
+header = data[0].map(x => x.trim());
 
-    data = mergeShiftData(dataCurrent, dataNext);
+nonExecText = nonExecText || "";
 
-    header = data[0].map(x => x.trim());
+nonExecData = nonExecText.split("\n").map(r=>r.replace(/\r/g,"").split(/[,;]/));
+nonExecHeader = nonExecData[0]?.map(x => x.trim()) || [];
 
-    const nonExecCurrent = nonExecTextCurrent.split("\n").map(r => r.replace(/\r/g,"").split(/[,;]/));
-    const nonExecNext = nonExecTextNext.split("\n").map(r => r.replace(/\r/g,"").split(/[,;]/));
-
-    nonExecData = mergeShiftData(nonExecCurrent, nonExecNext);
-
-    nonExecHeader = nonExecData[0]?.map(x => x.trim()) || [];
-
-    if(!header || header.length < 2){
-        console.error("Invalid CSV header");
-        return;
-    }
-
+if(!header || header.length < 2){
+    console.error("Invalid CSV header");
+    return;
+}
 
 selectedName = "";
 
@@ -1359,25 +1338,6 @@ function parseShift(shift){
 
     // Split A, B, C, etc.
     return shift.match(/[A-Z]/g) || [];
-}
-
-function mergeShiftData(current, next) {
-    if (!current || !next) return current;
-
-    const merged = [];
-
-    const header = [...current[0], ...next[0].slice(1)];
-    merged.push(header);
-
-    for (let i = 1; i < current.length; i++) {
-        const rowCurrent = current[i];
-        const rowNext = next[i] || [];
-
-        const mergedRow = [...rowCurrent, ...rowNext.slice(1)];
-        merged.push(mergedRow);
-    }
-
-    return merged;
 }
 
 function getData(date){
