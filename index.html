@@ -868,18 +868,37 @@ function sortBySeniority(list){
 }
 
 function mergeShiftData(current, next) {
-    if (!current || !next || !current.length || !next.length) return current;
+
+    if(!current || !current.length){
+        return [];
+    }
+
+    // If next month is unavailable,
+    // keep current month data working normally
+    if(!next || !next.length){
+        return current;
+    }
 
     const merged = [];
 
-    merged.push([...current[0], ...next[0].slice(1)]);
+    // Merge headers
+    merged.push([
+        ...current[0],
+        ...next[0].slice(1)
+    ]);
 
-    for (let i = 1; i < current.length; i++) {
-        const currentRow = current[i];
+    // Merge employee rows
+    for(let i = 1; i < current.length; i++){
+
+        const currentRow = current[i] || [];
         const name = currentRow[0]?.trim();
 
+        if(!name){
+            continue;
+        }
+
         const nextRow = next.find(row =>
-            row[0]?.trim() === name
+            row?.[0]?.trim() === name
         ) || [];
 
         merged.push([
@@ -925,6 +944,8 @@ if(!notesText) notesText = "";
 if(!trainingText) trainingText = "";
 if(!nonExecTextCurrent) nonExecTextCurrent = "";
 if(!nonExecTextNext) nonExecTextNext = "";
+if(!seniorityExecText) seniorityExecText = "";
+if(!seniorityNonExecText) seniorityNonExecText = "";
 
 loadSeniority(seniorityExecText, seniorityNonExecText);
 
@@ -1385,18 +1406,46 @@ render("today", today);
 
 function getShift(date,name){
 
-    let category = document.getElementById("categorySelector")?.value;
-    if(!category) return null;
+    let category =
+        document.getElementById("categorySelector")?.value;
 
-    let localData = (category === "exec") ? data : nonExecData;
-    let localHeader = (category === "exec") ? header : nonExecHeader;
+    if(!category || !date || !name){
+        return null;
+    }
+
+    let localData =
+        (category === "exec") ? data : nonExecData;
+
+    let localHeader =
+        (category === "exec") ? header : nonExecHeader;
+
+    if(!localData || !localData.length){
+        return null;
+    }
+
+    if(!localHeader || !localHeader.length){
+        return null;
+    }
 
     let col = localHeader.indexOf(date);
-    if(col === -1) return null;
 
-    for(let i=1;i<localData.length;i++){
-        if(localData[i][0]?.trim() === name){
-            return localData[i][col]?.trim() || null;
+    if(col === -1){
+        return null;
+    }
+
+    for(let i = 1; i < localData.length; i++){
+
+        let row = localData[i];
+
+        if(!row || !row.length){
+            continue;
+        }
+
+        let rowName = row[0]?.trim();
+
+        if(rowName === name){
+
+            return row[col]?.trim() || null;
         }
     }
 
