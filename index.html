@@ -1021,6 +1021,8 @@ Promise.all([
   fetch(holidayUrl).then(r=>r.text()),
   fetch(notesUrl).then(r=>r.text()),
   fetch(trainingUrl).then(r=>r.text()),
+  fetch(productionPlanUrl).then(r=>r.text()),
+  fetch(productionTargetUrl).then(r=>r.text()),
   fetch(nonExecUrl).then(r=>r.text()),
   fetch(nonExecUrlNext).then(r=>r.text()),
   fetch(seniorityExecUrl).then(r=>r.text()),
@@ -2277,9 +2279,6 @@ productionPlans = productionPlanText
         /* =========================
             PRODUCTION TARGET DATA
            ========================= */
-
-console.log("PRODUCTION PLAN CSV:", productionPlanText);
-console.log("PRODUCTION TARGET CSV:", productionTargetText);
 
 productionTargets = productionTargetText
     .split("\n")
