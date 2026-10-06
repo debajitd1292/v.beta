@@ -697,6 +697,10 @@ body.dark .badge {
 <div class="info-bar">
     <div><strong>Head of Department:</strong> Sh. Pradeep Rawat</div>
     <div><strong>Area In-charge:</strong> Sh. Manoj Kumar Haloi</div>
+    <div class="present-shift-incharge">
+        <strong>Present Shift In-charge:</strong>
+        <span id="presentShiftIncharge">—</span>
+    </div>
 </div>
 
 <div id="alertSection" style="margin:10px;"></div>
@@ -1270,6 +1274,38 @@ function getCurrentShiftInfo() {
     return null;
 }
 
+function updatePresentShiftIncharge(){
+
+    const current = getCurrentShiftInfo();
+
+    const element =
+        document.getElementById("presentShiftIncharge");
+
+    if(!element){
+        return;
+    }
+
+    if(!current){
+        element.innerText = "—";
+        return;
+    }
+
+    const shifts = getData(current.date);
+
+    const list = shifts[current.shift] || [];
+
+    if(!list.length){
+        element.innerText = "—";
+        return;
+    }
+
+    const firstExecutive = sortBySeniority(
+        list.map(x => x.name)
+    )[0];
+
+    element.innerText = firstExecutive || "—";
+}
+
 function initTheme(){
 
     let toggle = document.getElementById("toggleCheckbox");
@@ -1402,6 +1438,8 @@ if(shift && shift !== "-" && shift !== "Select Name"){
 }
 
 render("today", today);
+
+updatePresentShiftIncharge();
 }
 
 function getShift(date,name){
