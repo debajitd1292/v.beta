@@ -793,12 +793,11 @@ body.dark .production-past{
     opacity:0.4;
 }
 
-/* Empty */
 .production-empty{
-    text-align:center !important;
-    padding:18px 8px !important;
-    opacity:.6;
-    font-weight:500;
+    padding:6px 0 8px;
+    font-size:14px;
+    font-weight:600;
+    color:#777;
 }
 
 
@@ -935,30 +934,34 @@ body.dark .production-target.grade3{
 <div class="info-card production-card">
 
     <div class="section-title">
-        <span id="productionPlanMonth">—</span>
+        Production Plan for <span id="productionPlanMonth">—</span>
     </div>
 
     <div id="productionTargets" class="production-targets">
     </div>
 
-    <div class="production-table-wrap">
+    <div id="productionEmpty" class="production-empty">
+    Production plan not received yet
+</div>
 
-        <table class="production-table">
+<div class="production-table-wrap" id="productionTableWrap">
 
-            <thead>
-                <tr>
-                    <th>Duration</th>
-                    <th>Days</th>
-                    <th>Grade</th>
-                </tr>
-            </thead>
+    <table class="production-table">
 
-            <tbody id="productionPlanBody">
-            </tbody>
+        <thead>
+            <tr>
+                <th>Duration</th>
+                <th>Days</th>
+                <th>Grade</th>
+            </tr>
+        </thead>
 
-        </table>
+        <tbody id="productionPlanBody">
+        </tbody>
 
-    </div>
+    </table>
+
+</div>
 
 </div>
 
@@ -1950,7 +1953,8 @@ if(hasNonExec){
         let alert = (["A","B","C"].includes(s) && list.length <= 2) ? " ❗" : "";
         let chips = list.map(obj=>{
             let sel=(selectedName && obj.name===selectedName)?"selected":"";
-            return `<span class="chip ${s} ${sel}">${obj.name}</span>`;
+            let multi=obj.multi?" ❕":"";
+            return `<span class="chip ${s} ${sel}">${getFirstName(obj.name)}${multi}</span>`;
         }).join("");
 
         let activeClass = "";
@@ -2112,7 +2116,7 @@ function renderProductionPlan(){
 
     /* MONTH TITLE */
 
-    title.innerText = "Production Schedule for " + monthName + " " + currentYear;
+    title.innerText = monthName + " " + currentYear;
 
 
     /* =========================
@@ -2172,13 +2176,10 @@ function renderProductionPlan(){
 
     if(!plans.length){
 
-        body.innerHTML = `
-            <tr>
-                <td colspan="3" class="production-empty">
-                    Production plan not received yet
-                </td>
-            </tr>
-        `;
+        document.getElementById("productionEmpty").style.display = "block";
+        document.getElementById("productionTableWrap").style.display = "none";
+
+        body.innerHTML = "";
 
         return;
     }
@@ -2188,6 +2189,9 @@ function renderProductionPlan(){
        PLAN ROWS
        ========================= */
 
+    document.getElementById("productionEmpty").style.display = "none";
+    document.getElementById("productionTableWrap").style.display = "block";
+    
     plans.forEach(plan => {
 
         const fromParts =
