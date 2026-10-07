@@ -1140,8 +1140,8 @@ function mergeShiftData(current, next) {
 
 Promise.all([
   fetch(shiftUrl).then(r=>r.text()),
-  fetch(shiftUrlNext).then(r=>r.text()),
-  fetch(holidayUrl).then(r=>r.text()),
+  fetchCSV(shiftUrlNext, true),
+  fetchCSV(holidayUrl, true),
   fetch(notesUrl).then(r=>r.text()),
   fetch(trainingUrl).then(r=>r.text()),
   fetch(productionPlanUrl).then(r=>r.text()),
