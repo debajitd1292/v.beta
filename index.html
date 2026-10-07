@@ -146,12 +146,12 @@ body {
     justify-content: space-between;
     gap: 12px;
 
-    min-height: 30px;
-    padding: 3px 2px;
+    min-height: 25px;
+    padding: 1px 2px;
 }
 
 .info-label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     opacity: 0.9;
     white-space: nowrap;
@@ -174,26 +174,92 @@ body {
     min-width: 0;   /* prevents overflow on mobile */
 }
 
-.alert-item {
-    margin-bottom: 8px;
-}
-
-.alert-item:last-child {
-    margin-bottom: 0;
-}
+/* ===== Premium Alert Section ===== */
 
 #alertSection {
     margin: 10px;
     animation: fadeIn 0.3s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity:0; transform: translateY(-4px); }
-    to { opacity:1; transform: translateY(0); }
+/* Main alert card */
+.notice-alert {
+    position: relative;
+    background: #fffaf0;
+    border: 1px solid rgba(217, 151, 35, 0.22);
+    border-radius: 12px;
+    padding: 11px 13px 11px 16px;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.06);
+
+    overflow: hidden;
+}
+
+/* Thin accent on left */
+.notice-alert::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #d99a24;
+    border-radius: 12px 0 0 12px;
+}
+
+/* Individual alert */
+.alert-item {
+    position: relative;
+    margin-bottom: 8px;
+    padding-left: 27px;
+
+    color: #4a3a20;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.alert-item::before {
+    content: "⚠";
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    width: 20px;
+    height: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    color: #b47712;
+    background: #fff0c9;
+    border-radius: 50%;
+}
+
+.alert-item + .alert-item {
+    padding-top: 8px;
+    border-top: 1px solid rgba(217, 151, 35, 0.14);
+}
+
+.alert-item:last-child {
+    margin-bottom: 0;
 }
 
 #alertSection:empty {
     display: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 input, select {
@@ -968,7 +1034,7 @@ body.dark .production-target.grade3{
 
 <div class="card">
 
-    <h3>Today's Shift</h3>
+    <h3 id="todayTitle">Today's Shift</h3>
     <div id="today"></div>
 </div>
 
@@ -1038,24 +1104,80 @@ const now = new Date();
 const month = String(now.getMonth() + 1).padStart(2, '0');
 const year = String(now.getFullYear()).slice(-2);
 
-const monthKey = month + year;
-
-const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-const nextMonth = String(nextDate.getMonth() + 1).padStart(2, '0');
-const nextYear = String(nextDate.getFullYear()).slice(-2);
-
-const nextMonthKey = nextMonth + nextYear;
-
 const baseUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/";
 
-const shiftUrl = baseUrl + "exec/shift_exec_" + monthKey + ".csv?v=" + DATA_VERSION;
-const nonExecUrl = baseUrl + "nonexec/shift_nonexec_" + monthKey + ".csv?v=" + DATA_VERSION;
-const shiftUrlNext = baseUrl + "exec/shift_exec_" + nextMonthKey + ".csv?v=" + DATA_VERSION;
-const nonExecUrlNext = baseUrl + "nonexec/shift_nonexec_" + nextMonthKey + ".csv?v=" + DATA_VERSION;
+/* =========================================
+   DYNAMIC SHIFT MONTH URLS
+   ========================================= */
+
+let shiftUrl = "";
+let nonExecUrl = "";
+let shiftUrlNext = "";
+let nonExecUrlNext = "";
+
+function updateShiftUrls(){
+
+    const now = new Date();
+
+    const month =
+        String(now.getMonth() + 1).padStart(2, "0");
+
+    const year =
+        String(now.getFullYear()).slice(-2);
+
+    const monthKey =
+        month + year;
+
+    const nextDate =
+        new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            1
+        );
+
+    const nextMonth =
+        String(nextDate.getMonth() + 1).padStart(2, "0");
+
+    const nextYear =
+        String(nextDate.getFullYear()).slice(-2);
+
+    const nextMonthKey =
+        nextMonth + nextYear;
+
+
+    shiftUrl =
+        baseUrl +
+        "exec/shift_exec_" +
+        monthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    nonExecUrl =
+        baseUrl +
+        "nonexec/shift_nonexec_" +
+        monthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    shiftUrlNext =
+        baseUrl +
+        "exec/shift_exec_" +
+        nextMonthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    nonExecUrlNext =
+        baseUrl +
+        "nonexec/shift_nonexec_" +
+        nextMonthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+}
 
 const holidayUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/holiday.csv?v=" + DATA_VERSION;
 const notesUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/notes.csv?v=" + DATA_VERSION;
+const alertsUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/alerts.csv?v=" + DATA_VERSION;
 const trainingUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/training.csv?v=" + DATA_VERSION;
 const productionPlanUrl = baseUrl + "production/production_plan.csv?v=" + DATA_VERSION;
 const productionTargetUrl = baseUrl + "production/production_target.csv?v=" + DATA_VERSION;
@@ -1066,6 +1188,7 @@ const seniorityNonExecUrl = baseUrl + "seniority/seniority_nonexec.csv?v=" + DAT
 let data = [];
 let holidays = [];
 let notes = [];
+let alertsData = [];
 let selectedName = "";
 let trainings = [];
 let productionPlans = [];
@@ -1148,27 +1271,61 @@ function sortBySeniority(list){
     });
 }
 
+function parseCSV(text){
+
+    if(!text) return [];
+
+    return text
+        .split(/\r?\n/)
+        .filter(row => row.trim() !== "")
+        .map(row => {
+
+            const result = [];
+            let current = "";
+            let insideQuotes = false;
+
+            for(let i = 0; i < row.length; i++){
+
+                const char = row[i];
+
+                if(char === '"'){
+                    insideQuotes = !insideQuotes;
+                    continue;
+                }
+
+                if((char === "," || char === ";") && !insideQuotes){
+                    result.push(current.trim());
+                    current = "";
+                }else{
+                    current += char;
+                }
+            }
+
+            result.push(current.trim());
+
+            return result;
+        });
+}
+
 function mergeShiftData(current, next) {
 
     if(!current || !current.length){
-        return [];
+        return next && next.length ? next : [];
     }
 
-    // If next month is unavailable,
-    // keep current month data working normally
     if(!next || !next.length){
         return current;
     }
 
     const merged = [];
 
-    // Merge headers
     merged.push([
         ...current[0],
         ...next[0].slice(1)
     ]);
 
-    // Merge employee rows
+    const currentNames = new Set();
+
     for(let i = 1; i < current.length; i++){
 
         const currentRow = current[i] || [];
@@ -1177,6 +1334,8 @@ function mergeShiftData(current, next) {
         if(!name){
             continue;
         }
+
+        currentNames.add(name);
 
         const nextRow = next.find(row =>
             row?.[0]?.trim() === name
@@ -1188,9 +1347,35 @@ function mergeShiftData(current, next) {
         ]);
     }
 
+    for(let i = 1; i < next.length; i++){
+
+        const nextRow = next[i] || [];
+        const name = nextRow[0]?.trim();
+
+        if(!name){
+            continue;
+        }
+
+        // Skip employees already added
+        if(currentNames.has(name)){
+            continue;
+        }
+
+        const blankCurrentColumns =
+            new Array(current[0].length).fill("");
+
+        blankCurrentColumns[0] = name;
+
+        merged.push([
+            ...blankCurrentColumns,
+            ...nextRow.slice(1)
+        ]);
+    }
+
     return merged;
 }
 
+updateShiftUrls();
 
 Promise.all([
   fetch(shiftUrl).then(r=>r.text()),
@@ -1236,8 +1421,8 @@ if(!seniorityNonExecText) seniorityNonExecText = "";
 
 loadSeniority(seniorityExecText, seniorityNonExecText);
 
-const dataCurrent = shiftTextCurrent.split("\n").map(r=>r.replace(/\r/g,"").split(/[,;]/));
-const dataNext = shiftTextNext.split("\n").map(r=>r.replace(/\r/g,"").split(/[,;]/));
+const dataCurrent = parseCSV(shiftTextCurrent);
+const dataNext = parseCSV(shiftTextNext);
 
 data = mergeShiftData(dataCurrent, dataNext);
 
@@ -1246,8 +1431,8 @@ header = data[0].map(x => x.trim());
 if(!nonExecTextCurrent) nonExecTextCurrent = "";
 if(!nonExecTextNext) nonExecTextNext = "";
 
-const nonExecCurrent = nonExecTextCurrent.split("\n").map(r=>r.replace(/\r/g,"").split(/[,;]/));
-const nonExecNext = nonExecTextNext.split("\n").map(r=>r.replace(/\r/g,"").split(/[,;]/));
+const nonExecCurrent = parseCSV(nonExecTextCurrent);
+const nonExecNext = parseCSV(nonExecTextNext);
 
 nonExecData = mergeShiftData(nonExecCurrent, nonExecNext);
 
@@ -1261,41 +1446,51 @@ if(!header || header.length < 2){
 
 selectedName = "";
 
-holidays = holidayText.split("\n").slice(1).map(r=>{
-let [d,t,n]=r.replace(/\r/g,"").split(/[,;]/);
-return {date:d?.trim(),type:t?.trim(),name:n?.trim()};
-});
+const holidayRows = parseCSV(holidayText);
 
-trainings = trainingText.split("\n").slice(1).map(r=>{
-let [d,n,t]=r.replace(/\r/g,"").split(/[,;]/);
-return {
-    date: d?.trim(),
-    name: n?.trim(),
-    type: t?.trim()
-};
-});
+holidays = holidayRows.slice(1).map(r => {
+    return {
+        date: r[0]?.trim(),
+        type: r[1]?.trim(),
+        name: r[2]?.trim()
+    };
+}).filter(r => r.date);
 
-notes = notesText.split("\n").slice(1).map(r=>{
-let [d,t,n,m]=r.replace(/\r/g,"").split(/[,;]/);
-return {date:d?.trim(),type:t?.trim(),name:n?.trim(),message:m?.trim()};
-});
+const trainingRows = parseCSV(trainingText);
+
+trainings = trainingRows.slice(1).map(r => {
+    return {
+        date: r[0]?.trim(),
+        name: r[1]?.trim(),
+        type: r[2]?.trim()
+    };
+}).filter(r => r.date);
+
+const noteRows = parseCSV(notesText);
+
+notes = noteRows.slice(1).map(r => {
+    return {
+        date: r[0]?.trim(),
+        type: r[1]?.trim(),
+        name: r[2]?.trim(),
+        message: r[3]?.trim()
+    };
+}).filter(r => r.date);
 
 /* =========================
    PRODUCTION PLAN DATA
    ========================= */
 
-productionPlans = productionPlanText
-    .split("\n")
+const productionPlanRows = parseCSV(productionPlanText);
+
+productionPlans = productionPlanRows
     .slice(1)
     .map(r => {
 
-        let [from, to, grade] =
-            r.replace(/\r/g,"").split(/[,;]/);
-
         return {
-            from: from?.trim(),
-            to: to?.trim(),
-            grade: grade?.trim()
+            from: r[0]?.trim(),
+            to: r[1]?.trim(),
+            grade: r[2]?.trim()
         };
 
     })
@@ -1306,24 +1501,24 @@ productionPlans = productionPlanText
    PRODUCTION TARGET DATA
    ========================= */
 
-productionTargets = productionTargetText
-    .split("\n")
+const productionTargetRows = parseCSV(productionTargetText);
+
+productionTargets = productionTargetRows
     .slice(1)
     .map(r => {
 
-        let [month, grade, quantity] =
-            r.replace(/\r/g,"").split(/[,;]/);
-
         return {
-            month: month?.trim(),
-            grade: grade?.trim(),
-            quantity: quantity?.trim()
+            month: r[0]?.trim(),
+            grade: r[1]?.trim(),
+            quantity: r[2]?.trim()
         };
 
     })
     .filter(r => r.month && r.grade && r.quantity);
 
 init();
+
+loadAlerts();
 
 isDataLoaded = true;
 updateLastUpdated();
@@ -1384,97 +1579,293 @@ if(isGH || isRH) return true;
 return false;
 }
 
-const customAlerts = [
+function parseAlertDateTime(value){
 
-    // ✅ WEEKLY ALERT (Every Thursday 9 AM – 4 PM)
-    {
-    dayOfWeek: 4,   // 0=Sun, 1=Mon ... 4=Thu
-    fromHour: 9,
-    toHour: 16,
-    text: "PPU Weekly Review Meeting today at 4 PM • CCR Conference Room",
-    repeat: "weekly"
-    },
+    if(!value) return null;
 
-    // ✅ YEARLY ALERT (Example: PMS Filling)
-    {
-        from: { day: 1, month: 4, hour: 0, min: 0 },
-        to:   { day: 10, month: 4, hour: 23, min: 59 },
-        text: "Reminder: PMS filing to be completed by 10th April",
-        repeat: "yearly"
-    },
+    value = value.trim();
 
-];
+    let parts = value.split(/\s+/);
+
+    if(parts.length < 2) return null;
+
+    let datePart = parts[0];
+    let timePart = parts[1];
+
+    let [day, month, year] = datePart.split("-").map(Number);
+    let [hour, minute] = timePart.split(":").map(Number);
+
+    if(
+        !day || !month || !year ||
+        isNaN(hour) || isNaN(minute)
+    ){
+        return null;
+    }
+
+    return new Date(
+        year,
+        month - 1,
+        day,
+        hour,
+        minute,
+        0,
+        0
+    );
+}
 
 function getActiveAlerts(){
 
     let now = new Date();
 
-    let year = now.getFullYear();
-    let month = now.getMonth();
-    let date = now.getDate();
-    let hours = now.getHours();
+    let active = [];
 
-    let alerts = [];
+    alertsData.forEach(a => {
 
-    // 🔴 1. Monthly Reset Alert (Last day 9AM → 1st 6AM)
-    let lastDay = new Date(year, month + 1, 0).getDate();
+        if(!a.from || !a.to || !a.text) return;
 
-    if((date === lastDay && hours >= 9) || (date === 1 && hours < 6)){
-        alerts.push("Reset Totalizers, Pump Running Hours & Blending Silo on 1st Day of the Month at 6 AM • Record Readings before Reset");
-    }
+        let from = parseAlertDateTime(a.from);
+        let to   = parseAlertDateTime(a.to);
 
-    // 🔴 2. Attendance Alert (19th → 21st full day)
-    if(date >= 19 && date <= 21){
-        alerts.push("Update/Sign Attendance Register");
-    }
-    // 🔴 3. Custom Alerts (Yearly)
+        if(!from || !to) return;
 
-    customAlerts.forEach(a => {
+        let repeat = (a.repeat || "once").trim().toLowerCase();
 
-    if(a.repeat === "yearly"){
+        /* =========================
+           ONCE
+           ========================= */
 
-        let from = new Date(
-            year,
-            a.from.month - 1,
-            a.from.day,
-            a.from.hour,
-            a.from.min
-        );
+        if(repeat === "once"){
 
-        let to = new Date(
-            year,
-            a.to.month - 1,
-            a.to.day,
-            a.to.hour,
-            a.to.min
-        );
+            if(now >= from && now <= to){
+                active.push(a.text);
+            }
 
-        if(now >= from && now <= to){
-            alerts.push(a.text);
+            return;
         }
 
-    } 
-    else if(a.repeat === "weekly"){
 
-        let currentDay = now.getDay();   // 0–6
-        let currentMinutes = now.getHours()*60 + now.getMinutes();
+        /* =========================
+           VALIDITY PERIOD
+           ========================= */
 
-        let fromMinutes = a.fromHour * 60;
-        let toMinutes   = a.toHour * 60;
-
-        if(
-            currentDay === a.dayOfWeek &&
-            currentMinutes >= fromMinutes &&
-            currentMinutes <= toMinutes
-        ){
-            alerts.push(a.text);
+        if(now < from || now > to){
+            return;
         }
 
-    }
 
-});
+        /* =========================
+           DAILY
+           ========================= */
 
-    return alerts;
+        if(repeat === "daily"){
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           WEEKLY
+           ========================= */
+
+        if(repeat === "weekly"){
+
+            let currentDay = now.getDay();
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                currentDay === from.getDay() &&
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           MONTHLY
+           ========================= */
+
+        if(repeat === "monthly"){
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                now.getDate() === from.getDate() &&
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           YEARLY
+           ========================= */
+
+        if(repeat === "yearly"){
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                now.getMonth() === from.getMonth() &&
+                now.getDate() === from.getDate() &&
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+    });
+
+    return active;
+}
+
+function loadAlerts(){
+
+    fetchCSV(alertsUrl, true)
+
+        .then(alertText => {
+
+            if(!alertText){
+
+                alertsData = [];
+
+                renderAlerts();
+
+                return;
+            }
+
+            const rows = parseCSV(alertText);
+
+            if(!rows || rows.length < 2){
+
+                alertsData = [];
+
+                renderAlerts();
+
+                return;
+            }
+
+            const header = rows[0].map(h =>
+                h.trim().toLowerCase()
+            );
+
+            const fromIndex =
+                header.indexOf("from date time");
+
+            const toIndex =
+                header.indexOf("to date time");
+
+            const repeatIndex =
+                header.indexOf("repeat");
+
+            const textIndex =
+                header.indexOf("alarm text");
+
+
+            alertsData = rows
+                .slice(1)
+                .map(row => {
+
+                    return {
+
+                        from:
+                            row[fromIndex]?.trim() || "",
+
+                        to:
+                            row[toIndex]?.trim() || "",
+
+                        repeat:
+                            row[repeatIndex]?.trim().toLowerCase() || "once",
+
+                        text:
+                            row[textIndex]?.trim() || ""
+
+                    };
+
+                })
+                .filter(a =>
+                    a.from &&
+                    a.to &&
+                    a.text
+                );
+
+
+            renderAlerts();
+
+        })
+
+        .catch(err => {
+
+            console.warn(
+                "Alert CSV load failed:",
+                err
+            );
+
+            alertsData = [];
+
+            renderAlerts();
+
+        });
 }
 
 function renderAlerts(){
@@ -1486,9 +1877,11 @@ function renderAlerts(){
 
     if(alerts.length > 0){
         alertBox.innerHTML = `
-           <div class="notice-alert">
-               ${alerts.map(a => `<div class="alert-item">📢 ${a}</div>`).join("")}
-           </div>
+            <div class="notice-alert">
+                ${alerts.map(a => `
+                    <div class="alert-item">${a}</div>
+                `).join("")}
+            </div>
         `;
         alertBox.style.display = "block";
 
@@ -1738,9 +2131,19 @@ names.forEach(n => sel.add(new Option(getFirstName(n), n)));
 }
 
 function refresh(){
+    let calendarToday = formatDate(new Date());
 
-let today = formatDate(new Date());
-let shift = selectedName ? (getShift(today, selectedName) || "-") : "Select Name";
+    const currentShiftInfo = getCurrentShiftInfo();
+    let today = currentShiftInfo ? currentShiftInfo.date : calendarToday;
+
+    let shift = selectedName ? (getShift(today, selectedName) || "-") : "Select Name";
+
+    const [day, month, year] = today.split("-");
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    document.getElementById("todayTitle").innerText =
+    `Today's Shift (${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year})`;
 
 let badge = document.getElementById("todayShiftBadge");
 
@@ -2430,21 +2833,21 @@ function autoRefreshData(){
 
     console.log("🔄 Auto refresh triggered");
 
+    updateShiftUrls();
+
     Promise.all([
         fetchCSV(shiftUrl),
         fetchCSV(shiftUrlNext, true),
-
         fetchCSV(holidayUrl, true),
         fetchCSV(notesUrl, true),
         fetchCSV(trainingUrl, true),
         fetchCSV(productionPlanUrl, true),
         fetchCSV(productionTargetUrl, true),
-
         fetchCSV(nonExecUrl),
         fetchCSV(nonExecUrlNext, true),
-
         fetchCSV(seniorityExecUrl, true),
-        fetchCSV(seniorityNonExecUrl, true)
+        fetchCSV(seniorityNonExecUrl, true),
+        fetchCSV(alertsUrl, true)
     ])
 
     .then(([
@@ -2453,10 +2856,13 @@ function autoRefreshData(){
         holidayText,
         notesText,
         trainingText,
+        productionPlanText,
+        productionTargetText,
         nonExecTextCurrent,
         nonExecTextNext,
         seniorityExecText,
-        seniorityNonExecText
+        seniorityNonExecText,
+        alertsText
     ]) => {
 
         updateHeaderDate();
@@ -2466,17 +2872,40 @@ function autoRefreshData(){
             seniorityNonExecText
         );
 
+/* =========================
+   ALERT DATA
+   ========================= */
+
+if(alertsText !== undefined){
+
+    alertsData = parseCSV(alertsText)
+        .slice(1)
+        .map(row => {
+
+            return {
+                from: row[0]?.trim(),
+                to: row[1]?.trim(),
+                repeat: row[2]?.trim(),
+                text: row[3]?.trim()
+            };
+
+        })
+        .filter(r =>
+            r.from &&
+            r.to &&
+            r.repeat &&
+            r.text
+        );
+
+}
+
+
         /* =========================
            EXECUTIVE DATA
            ========================= */
 
-        const dataCurrent = shiftTextCurrent
-            .split("\n")
-            .map(r => r.replace(/\r/g,"").split(/[,;]/));
-
-        const dataNext = shiftTextNext
-            .split("\n")
-            .map(r => r.replace(/\r/g,"").split(/[,;]/));
+        const dataCurrent = parseCSV(shiftTextCurrent);
+        const dataNext = parseCSV(shiftTextNext);
 
         data = mergeShiftData(dataCurrent, dataNext);
 
@@ -2487,52 +2916,50 @@ function autoRefreshData(){
            HOLIDAY DATA
            ========================= */
 
-        holidays = holidayText.split("\n").slice(1).map(r => {
+        const holidayRows = parseCSV(holidayText);
 
-            let [d,t,n] = r.replace(/\r/g,"").split(/[,;]/);
+        holidays = holidayRows.slice(1).map(r => {
 
             return {
-                date: d?.trim(),
-                type: t?.trim(),
-                name: n?.trim()
+                date: r[0]?.trim(),
+                type: r[1]?.trim(),
+                name: r[2]?.trim()
             };
 
-        });
+        }).filter(r => r.date);
 
 
         /* =========================
            TRAINING DATA
            ========================= */
 
-        trainings = trainingText.split("\n").slice(1).map(r => {
+        const trainingRows = parseCSV(trainingText);
 
-            let [d,n,t] = r.replace(/\r/g,"").split(/[,;]/);
+        trainings = trainingRows.slice(1).map(r => {
 
             return {
-                date: d?.trim(),
-                name: n?.trim(),
-                type: t?.trim()
-            };
+                date: r[0]?.trim(),
+                name: r[1]?.trim(),
+                type: r[2]?.trim()
+           };
 
-        });
+       }).filter(r => r.date);
 
 
-        /* =========================
+/* =========================
    PRODUCTION PLAN DATA
    ========================= */
 
-productionPlans = productionPlanText
-    .split("\n")
+const productionPlanRows = parseCSV(productionPlanText);
+
+productionPlans = productionPlanRows
     .slice(1)
     .map(r => {
 
-        let [from, to, grade] =
-            r.replace(/\r/g,"").split(/[,;]/);
-
         return {
-            from: from?.trim(),
-            to: to?.trim(),
-            grade: grade?.trim()
+            from: r[0]?.trim(),
+            to: r[1]?.trim(),
+            grade: r[2]?.trim()
         };
 
     })
@@ -2543,18 +2970,16 @@ productionPlans = productionPlanText
             PRODUCTION TARGET DATA
            ========================= */
 
-productionTargets = productionTargetText
-    .split("\n")
+const productionTargetRows = parseCSV(productionTargetText);
+
+productionTargets = productionTargetRows
     .slice(1)
     .map(r => {
 
-        let [month, grade, quantity] =
-            r.replace(/\r/g,"").split(/[,;]/);
-
         return {
-            month: month?.trim(),
-            grade: grade?.trim(),
-            quantity: quantity?.trim()
+            month: r[0]?.trim(),
+            grade: r[1]?.trim(),
+            quantity: r[2]?.trim()
         };
 
     })
@@ -2564,31 +2989,26 @@ productionTargets = productionTargetText
            NOTES DATA
            ========================= */
 
-        notes = notesText.split("\n").slice(1).map(r => {
+        const noteRows = parseCSV(notesText);
 
-            let [d,t,n,m] = r.replace(/\r/g,"").split(/[,;]/);
+        notes = noteRows.slice(1).map(r => {
 
-            return {
-                date: d?.trim(),
-                type: t?.trim(),
-                name: n?.trim(),
-                message: m?.trim()
-            };
+        return {
+        date: r[0]?.trim(),
+        type: r[1]?.trim(),
+        name: r[2]?.trim(),
+        message: r[3]?.trim()
+        };
 
-        });
+        }).filter(r => r.date);
 
 
         /* =========================
            NON-EXECUTIVE DATA
            ========================= */
 
-        const nonExecCurrent = nonExecTextCurrent
-            .split("\n")
-            .map(r => r.replace(/\r/g,"").split(/[,;]/));
-
-        const nonExecNext = nonExecTextNext
-            .split("\n")
-            .map(r => r.replace(/\r/g,"").split(/[,;]/));
+        const nonExecCurrent = parseCSV(nonExecTextCurrent);
+        const nonExecNext = parseCSV(nonExecTextNext);
 
         nonExecData = mergeShiftData(
             nonExecCurrent,
@@ -2642,29 +3062,64 @@ productionTargets = productionTargetText
 function calcHoliday(){
 
     let today = new Date();
-    today.setHours(0,0,0,0);  // normalize
+    today.setHours(0,0,0,0);
 
     let nextGH = null;
     let nextRH = null;
 
     holidays.forEach(h => {
+
         if(!h.date) return;
 
         let [d,m,y] = h.date.split("-");
 
-        let hd = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+        let hd = new Date(
+            parseInt(y),
+            parseInt(m) - 1,
+            parseInt(d)
+        );
 
+        hd.setHours(0,0,0,0);
+
+        // Ignore today and past dates
         if(hd <= today) return;
 
-        if(h.type === "GH" && !nextGH) nextGH = h;
-        if(h.type === "RH" && !nextRH) nextRH = h;
+        // Find nearest GH
+        if(h.type === "GH"){
+            if(!nextGH || hd < nextGH.dateObj){
+                nextGH = {
+                    ...h,
+                    dateObj: hd
+                };
+            }
+        }
+
+        // Find nearest RH
+        if(h.type === "RH"){
+            if(!nextRH || hd < nextRH.dateObj){
+                nextRH = {
+                    ...h,
+                    dateObj: hd
+                };
+            }
+        }
+
     });
 
-    document.getElementById("nextGH").innerText =
-        nextGH ? formatHolidayDate(nextGH.date) + " (" + nextGH.name + ")" : "-";
+    const ghElem = document.getElementById("nextGH");
+    const rhElem = document.getElementById("nextRH");
 
-    document.getElementById("nextRH").innerText =
-        nextRH ? formatHolidayDate(nextRH.date) : "-";
+    if(ghElem){
+        ghElem.innerText = nextGH
+            ? formatHolidayDate(nextGH.date)
+            : "—";
+    }
+
+    if(rhElem){
+        rhElem.innerText = nextRH
+            ? formatHolidayDate(nextRH.date)
+            : "—";
+    }
 }
 
 if ('serviceWorker' in navigator) {
