@@ -124,27 +124,44 @@ body {
     border: 1px solid rgba(255,255,255,0.15);
 }
 
-.info-bar {			/* ✅ HOD/AIC Sec */
+.info-bar {		/* ✅ HOD/AIC Sec */
     background: linear-gradient(135deg, #1f4e79, #163a5f);
     color: white;
     margin: 10px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
+    padding: 10px 14px;
+    border-radius: 12px;
 
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
 
-    align-items: center;     
-    text-align: center;
-
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.18),
+        inset 0 1px 1px rgba(255,255,255,0.08);
 }
 
-.info-bar div {		/* ✅ HOD/AIC Sec */
-    width: 100%;
+.info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-height: 30px;
+    padding: 3px 2px;
+}
+
+.info-label {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+.info-name {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .row {			/* ✅ Side by side */
@@ -691,6 +708,10 @@ body.dark .badge {
     margin-bottom:12px;
 }
 
+.production-card h3{
+    margin-bottom:10px;
+}
+
 /* Target capsules */
 .production-targets{
     display:flex;
@@ -726,8 +747,8 @@ body.dark .badge {
 .production-target.grade3{
     background:linear-gradient(135deg,#fff7ed,#fed7aa);
     color:#c2410c;
-    padding:4px 7px;
-    font-size:9px;
+    padding:5px 8px;
+    font-size:10px;
 }
 
 
@@ -799,7 +820,8 @@ body.dark .production-past{
 }
 
 .production-empty{
-    padding:6px 0 8px;
+    padding:0;
+    margin-top:0;
     font-size:14px;
     font-weight:600;
     color:#777;
@@ -904,12 +926,22 @@ body.dark .production-target.grade3{
 </div>
 
 <div class="info-bar">
-    <div><strong>Head of Department:</strong> Sh. Pradeep Rawat</div>
-    <div><strong>Area In-charge:</strong> Sh. Manoj Kumar Haloi</div>
-    <div class="present-shift-incharge">
-        <strong>Present Shift In-charge:</strong>
-        <span id="presentShiftIncharge">—</span>
+
+    <div class="info-row">
+        <span class="info-label">Head of Department</span>
+        <span class="info-name">Sh. Pradeep Rawat</span>
     </div>
+
+    <div class="info-row">
+        <span class="info-label">Area In-charge</span>
+        <span class="info-name">Sh. Manoj Kumar Haloi</span>
+    </div>
+
+    <div class="info-row">
+        <span class="info-label">Shift In-charge (Current)</span>
+        <span class="info-name" id="presentShiftIncharge">—</span>
+    </div>
+
 </div>
 
 <div id="alertSection" style="margin:10px;"></div>
@@ -2290,7 +2322,7 @@ function renderNext7Days(){
         if(!box) return; 
  
         if(!header || header.length === 0 || !data || data.length === 0){
-            box.innerHTML = "<div style='color:#777;'>Shift schedule is not available</div>";
+            box.innerHTML = "<div style='color:#777;font-weight:bold;'>Shift schedule is not available</div>";
             return;
         }
 
