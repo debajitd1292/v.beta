@@ -1200,8 +1200,9 @@ nonExecData = mergeShiftData(nonExecCurrent, nonExecNext);
 nonExecHeader = nonExecData[0]?.map(x => x.trim()) || [];
 
 if(!header || header.length < 2){
-    console.error("Invalid CSV header");
-    return;
+    console.warn("Shift CSV not available for current period");
+    data = [];
+    header = [];
 }
 
 selectedName = "";
@@ -2267,7 +2268,7 @@ function renderNext7Days(){
         if(!box) return; 
  
         if(!header || header.length === 0 || !data || data.length === 0){
-            box.innerHTML = "<div style='color:#777;'>Loading...</div>";
+            box.innerHTML = "<div style='color:#777;'>Shift schedule is not available</div>";
             return;
         }
 
