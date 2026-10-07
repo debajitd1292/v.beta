@@ -1979,10 +1979,12 @@ function renderSelected(){
         year: "numeric"
     });
 
+let renderDate = formatDate(d);
+
 document.getElementById("selectedTitle").innerText =
 "Selected Date Shift ("+formatted+")";
 
-render("selected",formatted);
+render("selected",renderDate);
 }
 
 function renderTraining(){
