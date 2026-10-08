@@ -34,69 +34,109 @@ function parseCSV(text){
         });
 }
 
-function mergeShiftData(current, next) {
+function mergeShiftData(previous, current, next) {
 
-    if(!current || !current.length){
-        return next && next.length ? next : [];
+    const months = [
+        previous,
+        current,
+        next
+    ].filter(month =>
+        month && month.length
+    );
+
+    if(!months.length){
+        return [];
     }
 
-    if(!next || !next.length){
-        return current;
-    }
+    /*
+       Find the first available month as the base.
+       This ensures the app still works even if
+       previous or next month CSV is unavailable.
+    */
+
+    const base = months[0];
 
     const merged = [];
 
-    merged.push([
-        ...current[0],
-        ...next[0].slice(1)
-    ]);
+    /* ===============================
+       HEADER
+       =============================== */
 
-    const currentNames = new Set();
+    const header = [base[0][0]];
 
-    for(let i = 1; i < current.length; i++){
+    for(const month of months){
 
-        const currentRow = current[i] || [];
-        const name = currentRow[0]?.trim();
+        header.push(
+            ...month[0].slice(1)
+        );
 
-        if(!name){
-            continue;
-        }
-
-        currentNames.add(name);
-
-        const nextRow = next.find(row =>
-            row?.[0]?.trim() === name
-        ) || [];
-
-        merged.push([
-            ...currentRow,
-            ...nextRow.slice(1)
-        ]);
     }
 
-    for(let i = 1; i < next.length; i++){
+    merged.push(header);
 
-        const nextRow = next[i] || [];
-        const name = nextRow[0]?.trim();
 
-        if(!name){
-            continue;
+    /* ===============================
+       COLLECT ALL EMPLOYEE NAMES
+       =============================== */
+
+    const employeeNames = new Set();
+
+    for(const month of months){
+
+        for(let i = 1; i < month.length; i++){
+
+            const name =
+                month[i]?.[0]?.trim();
+
+            if(name){
+                employeeNames.add(name);
+            }
+
         }
 
-        // Skip employees already added
-        if(currentNames.has(name)){
-            continue;
+    }
+
+
+    /* ===============================
+       BUILD EMPLOYEE ROWS
+       =============================== */
+
+    for(const name of employeeNames){
+
+        const row = [name];
+
+        for(const month of months){
+
+            const monthRow =
+                month.find(r =>
+                    r?.[0]?.trim() === name
+                );
+
+            if(monthRow){
+
+                row.push(
+                    ...monthRow.slice(1)
+                );
+
+            }else{
+
+                /*
+                   Employee not present in this
+                   month's schedule.
+                */
+
+                row.push(
+                    ...new Array(
+                        month[0].length - 1
+                    ).fill("")
+                );
+
+            }
+
         }
 
-        const blankCurrentColumns =
-            new Array(current[0].length).fill("");
+        merged.push(row);
 
-        blankCurrentColumns[0] = name;
-
-        merged.push([
-            ...blankCurrentColumns,
-            ...nextRow.slice(1)
-        ]);
     }
 
     return merged;
