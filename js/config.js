@@ -25,3 +25,72 @@ const seniorityExecUrl =
 
 const seniorityNonExecUrl =
     baseUrl + "seniority/seniority_nonexec.csv?v=" + DATA_VERSION;
+
+/* =========================================
+   DYNAMIC SHIFT MONTH URLS
+   ========================================= */
+
+let shiftUrl = "";
+let nonExecUrl = "";
+let shiftUrlNext = "";
+let nonExecUrlNext = "";
+
+function updateShiftUrls(){
+
+    const now = new Date();
+
+    const month =
+        String(now.getMonth() + 1).padStart(2, "0");
+
+    const year =
+        String(now.getFullYear()).slice(-2);
+
+    const monthKey =
+        month + year;
+
+    const nextDate =
+        new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            1
+        );
+
+    const nextMonth =
+        String(nextDate.getMonth() + 1).padStart(2, "0");
+
+    const nextYear =
+        String(nextDate.getFullYear()).slice(-2);
+
+    const nextMonthKey =
+        nextMonth + nextYear;
+
+
+    shiftUrl =
+        baseUrl +
+        "exec/shift_exec_" +
+        monthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    nonExecUrl =
+        baseUrl +
+        "nonexec/shift_nonexec_" +
+        monthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    shiftUrlNext =
+        baseUrl +
+        "exec/shift_exec_" +
+        nextMonthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    nonExecUrlNext =
+        baseUrl +
+        "nonexec/shift_nonexec_" +
+        nextMonthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+}
