@@ -1,10 +1,10 @@
 body { 
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-
-    font-family: Arial; 
-    margin:0; 
-    background:#eef1f5; 
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+    margin: 0; 
+    background: #eef1f5; 
     overflow-x: hidden;
 }
 
@@ -51,19 +51,10 @@ body {
     text-shadow: 0 0 8px rgba(255,255,255,0.15);
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-}
-
 h1 {
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     letter-spacing: 0.8px;
-}
-
-body {
-    font-family: 'Inter', sans-serif;
-    font-variant-numeric: tabular-nums;
 }
 
 .holiday-text {
@@ -166,20 +157,6 @@ body {
 #alertSection {
     margin: 10px;
     animation: fadeIn 0.3s ease;
-}
-
-/* Main alert card */
-.notice-alert {
-    position: relative;
-    background: #fffaf0;
-    border: 1px solid rgba(217, 151, 35, 0.22);
-    border-radius: 12px;
-    padding: 11px 13px 11px 16px;
-
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.06);
-
-    overflow: hidden;
 }
 
 /* Thin accent on left */
@@ -428,14 +405,16 @@ body.dark .badge.N { background:#9ca3af; color:black; }
     color: white;
 }
 
-.notice-alert {		/* ✅ Alerts */
+.notice-alert {
+    position: relative;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 10px;
 
-    padding: 10px 14px;
+    padding: 10px 14px 10px 16px;
     margin-bottom: 12px;
 
     border-radius: 10px;
@@ -450,10 +429,12 @@ body.dark .badge.N { background:#9ca3af; color:black; }
 
     border: 1px solid rgba(183, 28, 28, 0.25);
 
-    box-shadow: 
-        0 4px 10px rgba(183,28,28,0.18),
-        0 0 12px rgba(183,28,28,0.25),
-        0 0 22px rgba(183,28,28,0.15);
+    box-shadow:
+        0 4px 10px rgba(183, 28, 28, 0.18),
+        0 0 12px rgba(183, 28, 28, 0.25),
+        0 0 22px rgba(183, 28, 28, 0.15);
+
+    overflow: hidden;
 
     animation: pulseGlow 2s infinite;
 }
