@@ -138,17 +138,14 @@ function refresh(){
 
 let badge = document.getElementById("todayShiftBadge");
 
-/* TEXT */
 if(!selectedName){
     badge.innerText = "Select a name to view shift";
 }else{
     badge.innerText = "Today's Shift: " + shift;
 }
 
-/* RESET CLASS */
 badge.className = "badge";
 
-/* APPLY COLOR */
 if(shift && shift !== "-" && shift !== "Select Name"){
 
     let primary;
@@ -347,9 +344,6 @@ function autoRefreshData(){
             seniorityNonExecText
         );
 
-/* =========================
-   ALERT DATA
-   ========================= */
 
 if(alertsText !== undefined){
 
@@ -375,10 +369,6 @@ if(alertsText !== undefined){
 }
 
 
-        /* =========================
-           EXECUTIVE DATA
-           ========================= */
-
         const dataCurrent = parseCSV(shiftTextCurrent);
         const dataNext = parseCSV(shiftTextNext);
 
@@ -393,18 +383,13 @@ if(alertsText !== undefined){
         loadTrainingData(trainingText);
 
 
-loadProductionData(
-    productionPlanText,
-    productionTargetText
-);
+        loadProductionData(
+        productionPlanText,
+        productionTargetText
+        );
 
 
         loadNotesData(notesText);
-
-
-        /* =========================
-           NON-EXECUTIVE DATA
-           ========================= */
 
         const nonExecCurrent = parseCSV(nonExecTextCurrent);
         const nonExecNext = parseCSV(nonExecTextNext);
@@ -417,10 +402,6 @@ loadProductionData(
         nonExecHeader =
             nonExecData[0]?.map(x => x.trim()) || [];
 
-
-        /* =========================
-           REFRESH DISPLAY
-           ========================= */
 
         document.getElementById("todayNote").innerHTML =
             getTodayNote();
