@@ -1,1 +1,2040 @@
+const DATA_VERSION = Date.now();
 
+const now = new Date();
+
+const month = String(now.getMonth() + 1).padStart(2, '0');
+const year = String(now.getFullYear()).slice(-2);
+
+const baseUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/";
+
+/* =========================================
+   DYNAMIC SHIFT MONTH URLS
+   ========================================= */
+
+let shiftUrl = "";
+let nonExecUrl = "";
+let shiftUrlNext = "";
+let nonExecUrlNext = "";
+
+function updateShiftUrls(){
+
+    const now = new Date();
+
+    const month =
+        String(now.getMonth() + 1).padStart(2, "0");
+
+    const year =
+        String(now.getFullYear()).slice(-2);
+
+    const monthKey =
+        month + year;
+
+    const nextDate =
+        new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            1
+        );
+
+    const nextMonth =
+        String(nextDate.getMonth() + 1).padStart(2, "0");
+
+    const nextYear =
+        String(nextDate.getFullYear()).slice(-2);
+
+    const nextMonthKey =
+        nextMonth + nextYear;
+
+
+    shiftUrl =
+        baseUrl +
+        "exec/shift_exec_" +
+        monthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    nonExecUrl =
+        baseUrl +
+        "nonexec/shift_nonexec_" +
+        monthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    shiftUrlNext =
+        baseUrl +
+        "exec/shift_exec_" +
+        nextMonthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+    nonExecUrlNext =
+        baseUrl +
+        "nonexec/shift_nonexec_" +
+        nextMonthKey +
+        ".csv?v=" +
+        DATA_VERSION;
+
+}
+
+const holidayUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/holiday.csv?v=" + DATA_VERSION;
+const notesUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/notes.csv?v=" + DATA_VERSION;
+const alertsUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/alerts.csv?v=" + DATA_VERSION;
+const trainingUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/updates/training.csv?v=" + DATA_VERSION;
+const productionPlanUrl = baseUrl + "production/production_plan.csv?v=" + DATA_VERSION;
+const productionTargetUrl = baseUrl + "production/production_target.csv?v=" + DATA_VERSION;
+
+const seniorityExecUrl = baseUrl + "seniority/seniority_exec.csv?v=" + DATA_VERSION;
+const seniorityNonExecUrl = baseUrl + "seniority/seniority_nonexec.csv?v=" + DATA_VERSION;
+
+let data = [];
+let holidays = [];
+let notes = [];
+let alertsData = [];
+let selectedName = "";
+let trainings = [];
+let productionPlans = [];
+let productionTargets = [];
+let header = [];
+let nonExecData = [];
+let nonExecHeader = [];
+let isDataLoaded = false;
+
+let seniorityOrder = [];
+let nonExecSeniorityOrder = [];
+
+const shiftLabels = {
+"A":"A Shift","B":"B Shift","C":"C Shift",
+"G":"General","OFF":"Rest / Off / Holiday",
+"D":"Day Shift","N":"Night Shift",
+"L":"Leave","T":"Training / Tour"
+};
+
+function updateHeaderDate(){
+
+    let dateElem = document.getElementById("todayDate");
+    if(!dateElem) return;
+
+    let now = new Date();
+
+    dateElem.innerText = now.toDateString();
+
+    if(isSpecialDay()){
+        dateElem.style.color = "#ffd600";
+        dateElem.style.fontWeight = "600";
+    } else {
+        dateElem.style.color = "";
+        dateElem.style.fontWeight = "";
+    }
+}
+
+function updateTrainingHeader(){
+
+    let header = document.getElementById("trainingHeader");
+    if(!header) return;
+
+    let now = new Date();
+
+    let month = now.toLocaleString("default", { month: "long" });
+    let year = now.getFullYear();
+
+    header.innerText = `Training Schedule for ${month} ${year}`;
+}
+
+function loadSeniority(execText, nonExecText){
+
+    if(execText && execText.trim()){
+        seniorityOrder = execText
+            .split(/\r?\n/)
+            .slice(1)
+            .map(x => x.trim())
+            .filter(Boolean);
+    }
+
+    if(nonExecText && nonExecText.trim()){
+        nonExecSeniorityOrder = nonExecText
+            .split(/\r?\n/)
+            .slice(1)
+            .map(x => x.trim())
+            .filter(Boolean);
+    }
+
+    console.log("Executive seniority loaded:", seniorityOrder);
+    console.log("Non-Executive seniority loaded:", nonExecSeniorityOrder);
+}
+
+function sortBySeniority(list){
+    return list.sort((a,b)=>{
+        let ia = seniorityOrder.indexOf(a.trim());
+        let ib = seniorityOrder.indexOf(b.trim());
+        if(ia === -1) ia = 999;
+        if(ib === -1) ib = 999;
+        return ia - ib;
+    });
+}
+
+function parseCSV(text){
+
+    if(!text) return [];
+
+    return text
+        .split(/\r?\n/)
+        .filter(row => row.trim() !== "")
+        .map(row => {
+
+            const result = [];
+            let current = "";
+            let insideQuotes = false;
+
+            for(let i = 0; i < row.length; i++){
+
+                const char = row[i];
+
+                if(char === '"'){
+                    insideQuotes = !insideQuotes;
+                    continue;
+                }
+
+                if((char === "," || char === ";") && !insideQuotes){
+                    result.push(current.trim());
+                    current = "";
+                }else{
+                    current += char;
+                }
+            }
+
+            result.push(current.trim());
+
+            return result;
+        });
+}
+
+function mergeShiftData(current, next) {
+
+    if(!current || !current.length){
+        return next && next.length ? next : [];
+    }
+
+    if(!next || !next.length){
+        return current;
+    }
+
+    const merged = [];
+
+    merged.push([
+        ...current[0],
+        ...next[0].slice(1)
+    ]);
+
+    const currentNames = new Set();
+
+    for(let i = 1; i < current.length; i++){
+
+        const currentRow = current[i] || [];
+        const name = currentRow[0]?.trim();
+
+        if(!name){
+            continue;
+        }
+
+        currentNames.add(name);
+
+        const nextRow = next.find(row =>
+            row?.[0]?.trim() === name
+        ) || [];
+
+        merged.push([
+            ...currentRow,
+            ...nextRow.slice(1)
+        ]);
+    }
+
+    for(let i = 1; i < next.length; i++){
+
+        const nextRow = next[i] || [];
+        const name = nextRow[0]?.trim();
+
+        if(!name){
+            continue;
+        }
+
+        // Skip employees already added
+        if(currentNames.has(name)){
+            continue;
+        }
+
+        const blankCurrentColumns =
+            new Array(current[0].length).fill("");
+
+        blankCurrentColumns[0] = name;
+
+        merged.push([
+            ...blankCurrentColumns,
+            ...nextRow.slice(1)
+        ]);
+    }
+
+    return merged;
+}
+
+updateShiftUrls();
+
+Promise.all([
+  fetch(shiftUrl).then(r=>r.text()),
+  fetchCSV(shiftUrlNext, true),
+  fetchCSV(holidayUrl, true),
+  fetch(notesUrl).then(r=>r.text()),
+  fetch(trainingUrl).then(r=>r.text()),
+  fetch(productionPlanUrl).then(r=>r.text()),
+  fetch(productionTargetUrl).then(r=>r.text()),
+  fetch(nonExecUrl).then(r=>r.text()),
+  fetch(nonExecUrlNext).then(r=>r.text()),
+  fetch(seniorityExecUrl).then(r=>r.text()),
+  fetch(seniorityNonExecUrl).then(r=>r.text())
+]).then(([
+    shiftTextCurrent,
+    shiftTextNext,
+    holidayText,
+    notesText,
+    trainingText,
+    productionPlanText,
+    productionTargetText,
+    nonExecTextCurrent,
+    nonExecTextNext,
+    seniorityExecText,
+    seniorityNonExecText
+]) => {
+
+if(!shiftTextCurrent || shiftTextCurrent.trim() === ""){
+    document.getElementById("today").innerHTML =
+    "<div style='color:red;font-weight:bold;'>SHIFT DATA NOT LOADED</div>";
+    return;
+}
+
+if(!holidayText) holidayText = "";
+if(!notesText) notesText = "";
+if(!trainingText) trainingText = "";
+if(!productionPlanText) productionPlanText = "";
+if(!productionTargetText) productionTargetText = "";
+if(!nonExecTextCurrent) nonExecTextCurrent = "";
+if(!nonExecTextNext) nonExecTextNext = "";
+if(!seniorityExecText) seniorityExecText = "";
+if(!seniorityNonExecText) seniorityNonExecText = "";
+
+loadSeniority(seniorityExecText, seniorityNonExecText);
+
+const dataCurrent = parseCSV(shiftTextCurrent);
+const dataNext = parseCSV(shiftTextNext);
+
+data = mergeShiftData(dataCurrent, dataNext);
+
+header = data[0].map(x => x.trim());
+
+if(!nonExecTextCurrent) nonExecTextCurrent = "";
+if(!nonExecTextNext) nonExecTextNext = "";
+
+const nonExecCurrent = parseCSV(nonExecTextCurrent);
+const nonExecNext = parseCSV(nonExecTextNext);
+
+nonExecData = mergeShiftData(nonExecCurrent, nonExecNext);
+
+nonExecHeader = nonExecData[0]?.map(x => x.trim()) || [];
+
+if(!header || header.length < 2){
+    console.warn("Shift CSV not available for current period");
+    data = [];
+    header = [];
+}
+
+selectedName = "";
+
+const holidayRows = parseCSV(holidayText);
+
+holidays = holidayRows.slice(1).map(r => {
+    return {
+        date: r[0]?.trim(),
+        type: r[1]?.trim(),
+        name: r[2]?.trim()
+    };
+}).filter(r => r.date);
+
+const trainingRows = parseCSV(trainingText);
+
+trainings = trainingRows.slice(1).map(r => {
+    return {
+        date: r[0]?.trim(),
+        name: r[1]?.trim(),
+        type: r[2]?.trim()
+    };
+}).filter(r => r.date);
+
+const noteRows = parseCSV(notesText);
+
+notes = noteRows.slice(1).map(r => {
+    return {
+        date: r[0]?.trim(),
+        type: r[1]?.trim(),
+        name: r[2]?.trim(),
+        message: r[3]?.trim()
+    };
+}).filter(r => r.date);
+
+/* =========================
+   PRODUCTION PLAN DATA
+   ========================= */
+
+const productionPlanRows = parseCSV(productionPlanText);
+
+productionPlans = productionPlanRows
+    .slice(1)
+    .map(r => {
+
+        return {
+            from: r[0]?.trim(),
+            to: r[1]?.trim(),
+            grade: r[2]?.trim()
+        };
+
+    })
+    .filter(r => r.from && r.to && r.grade);
+
+
+/* =========================
+   PRODUCTION TARGET DATA
+   ========================= */
+
+const productionTargetRows = parseCSV(productionTargetText);
+
+productionTargets = productionTargetRows
+    .slice(1)
+    .map(r => {
+
+        return {
+            month: r[0]?.trim(),
+            grade: r[1]?.trim(),
+            quantity: r[2]?.trim()
+        };
+
+    })
+    .filter(r => r.month && r.grade && r.quantity);
+
+init();
+
+loadAlerts();
+
+isDataLoaded = true;
+updateLastUpdated();
+
+})
+
+.catch(err => {
+    console.error("Data load failed:", err);
+    document.getElementById("today").innerHTML = 
+    "<div style='color:red;font-weight:bold;'>Data load failed (Offline)</div>";
+});
+
+function formatDate(d){
+return ("0"+d.getDate()).slice(-2)+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+d.getFullYear();
+}
+
+function formatHolidayDate(dateStr){
+let [d,m,y]=dateStr.split("-");
+let day=parseInt(d);
+
+let suffix="th";
+if(day===1||day===21||day===31) suffix="st";
+else if(day===2||day===22) suffix="nd";
+else if(day===3||day===23) suffix="rd";
+
+const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+return day + suffix + " " + months[parseInt(m)-1];
+}
+
+function isSpecialDay(){
+
+let today = new Date();
+let day = today.getDay(); // 0=Sun, 6=Sat
+let date = today.getDate();
+
+/* Sunday */
+if(day === 0) return true;
+
+/* 2nd & 4th Saturday */
+if(day === 6){
+    let week = Math.ceil(date / 7);
+    if(week === 2 || week === 4) return true;
+}
+
+/* GH check */
+let todayStr = formatDate(today);
+
+let isGH = holidays.some(h => 
+    h.date === todayStr && h.type === "GH"
+);
+
+let isRH = holidays.some(h => 
+    h.date === todayStr && h.type === "RH"
+);
+
+if(isGH || isRH) return true;
+
+return false;
+}
+
+function parseAlertDateTime(value){
+
+    if(!value) return null;
+
+    value = value.trim();
+
+    let parts = value.split(/\s+/);
+
+    if(parts.length < 2) return null;
+
+    let datePart = parts[0];
+    let timePart = parts[1];
+
+    let [day, month, year] = datePart.split("-").map(Number);
+    let [hour, minute] = timePart.split(":").map(Number);
+
+    if(
+        !day || !month || !year ||
+        isNaN(hour) || isNaN(minute)
+    ){
+        return null;
+    }
+
+    return new Date(
+        year,
+        month - 1,
+        day,
+        hour,
+        minute,
+        0,
+        0
+    );
+}
+
+function getActiveAlerts(){
+
+    let now = new Date();
+
+    let active = [];
+
+    alertsData.forEach(a => {
+
+        if(!a.from || !a.to || !a.text) return;
+
+        let from = parseAlertDateTime(a.from);
+        let to   = parseAlertDateTime(a.to);
+
+        if(!from || !to) return;
+
+        let repeat = (a.repeat || "once").trim().toLowerCase();
+
+        /* =========================
+           ONCE
+           ========================= */
+
+        if(repeat === "once"){
+
+            if(now >= from && now <= to){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           VALIDITY PERIOD
+           ========================= */
+
+        if(now < from || now > to){
+            return;
+        }
+
+
+        /* =========================
+           DAILY
+           ========================= */
+
+        if(repeat === "daily"){
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           WEEKLY
+           ========================= */
+
+        if(repeat === "weekly"){
+
+            let currentDay = now.getDay();
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                currentDay === from.getDay() &&
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           MONTHLY
+           ========================= */
+
+        if(repeat === "monthly"){
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                now.getDate() === from.getDate() &&
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           YEARLY
+           ========================= */
+
+        if(repeat === "yearly"){
+
+            let currentMinutes =
+                now.getHours() * 60 +
+                now.getMinutes();
+
+            let fromMinutes =
+                from.getHours() * 60 +
+                from.getMinutes();
+
+            let toMinutes =
+                to.getHours() * 60 +
+                to.getMinutes();
+
+            if(
+                now.getMonth() === from.getMonth() &&
+                now.getDate() === from.getDate() &&
+                currentMinutes >= fromMinutes &&
+                currentMinutes <= toMinutes
+            ){
+                active.push(a.text);
+            }
+
+            return;
+        }
+
+    });
+
+    return active;
+}
+
+function loadAlerts(){
+
+    fetchCSV(alertsUrl, true)
+
+        .then(alertText => {
+
+            if(!alertText){
+
+                alertsData = [];
+
+                renderAlerts();
+
+                return;
+            }
+
+            const rows = parseCSV(alertText);
+
+            if(!rows || rows.length < 2){
+
+                alertsData = [];
+
+                renderAlerts();
+
+                return;
+            }
+
+            const header = rows[0].map(h =>
+                h.trim().toLowerCase()
+            );
+
+            const fromIndex =
+                header.indexOf("from date time");
+
+            const toIndex =
+                header.indexOf("to date time");
+
+            const repeatIndex =
+                header.indexOf("repeat");
+
+            const textIndex =
+                header.indexOf("alarm text");
+
+
+            alertsData = rows
+                .slice(1)
+                .map(row => {
+
+                    return {
+
+                        from:
+                            row[fromIndex]?.trim() || "",
+
+                        to:
+                            row[toIndex]?.trim() || "",
+
+                        repeat:
+                            row[repeatIndex]?.trim().toLowerCase() || "once",
+
+                        text:
+                            row[textIndex]?.trim() || ""
+
+                    };
+
+                })
+                .filter(a =>
+                    a.from &&
+                    a.to &&
+                    a.text
+                );
+
+
+            renderAlerts();
+
+        })
+
+        .catch(err => {
+
+            console.warn(
+                "Alert CSV load failed:",
+                err
+            );
+
+            alertsData = [];
+
+            renderAlerts();
+
+        });
+}
+
+function renderAlerts(){
+
+    let alertBox = document.getElementById("alertSection");
+    if(!alertBox) return;
+
+    let alerts = getActiveAlerts();
+
+    if(alerts.length > 0){
+        alertBox.innerHTML = `
+            <div class="notice-alert">
+                ${alerts.map(a => `
+                    <div class="alert-item">${a}</div>
+                `).join("")}
+            </div>
+        `;
+        alertBox.style.display = "block";
+
+        triggerAlertVibration(alerts);
+
+    } else {
+        alertBox.innerHTML = "";
+        alertBox.style.display = "none";
+    }
+}
+
+function triggerAlertVibration(alerts){
+
+    if(!("vibrate" in navigator)) return;
+
+    let newKey = alerts.join("|");
+    let oldKey = localStorage.getItem("lastAlertKey");
+
+    if(newKey && newKey !== oldKey){
+        navigator.vibrate([200,100,200,100,400]);
+        localStorage.setItem("lastAlertKey", newKey);
+    }
+
+    if(!newKey){
+        localStorage.removeItem("lastAlertKey");
+    }
+}
+
+function getTodayNote(){
+    let today = new Date();
+    let key = ("0"+today.getDate()).slice(-2) + "-" +
+              ("0"+(today.getMonth()+1)).slice(-2);
+
+let todaysNotes = notes.filter(n => n.date === key);
+
+if(todaysNotes.length === 0) return "";
+
+return todaysNotes.map(n => {
+
+    if(n.type === "BIRTHDAY"){
+        return `Happy Birthday ${n.name} 🎂`;
+    }
+
+    if(n.type === "REPUBLIC DAY"){
+        return `${n.message} 🇮🇳`;
+    }
+
+    if(n.type === "INDEPENDENCE DAY"){
+        return `${n.message} 🇮🇳`;
+    }
+
+    if(n.type === "FOUNDATION DAY"){
+        return `${n.message} 🎉`;
+    }
+
+    if(n.type === "NEW YEAR"){
+        return `${n.message} 🎉`;
+    }
+
+    return n.message;
+
+}).join("<br>");
+}
+
+function updateLastUpdated(){
+    let now = new Date();
+
+    let time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let date = now.toLocaleDateString([], { day: '2-digit', month: 'short' });
+
+    document.getElementById("lastUpdated").innerText =
+        "Last Sync: " + date + " • " + time;
+}
+
+function getCurrentShiftInfo() {
+    let now = new Date();
+
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+
+    let currentDate = formatDate(now);
+
+    // previous date
+    let prev = new Date(now);
+    prev.setDate(prev.getDate() - 1);
+    let prevDate = formatDate(prev);
+
+    // A Shift: 06:00–14:00
+    if(hours >= 6 && hours < 14){
+        return { shift: "A", date: currentDate };
+    }
+
+    // B Shift: 14:00–22:00
+    if(hours >= 14 && hours < 22){
+        return { shift: "B", date: currentDate };
+    }
+
+    // C Shift split logic
+    if(hours >= 22){
+        // same day C
+        return { shift: "C", date: currentDate };
+    }
+
+    if(hours < 6){
+        // 🔴 IMPORTANT: after midnight → previous date C shift
+        return { shift: "C", date: prevDate };
+    }
+
+    return null;
+}
+
+function updatePresentShiftIncharge(){
+
+    const current = getCurrentShiftInfo();
+
+    const element =
+        document.getElementById("presentShiftIncharge");
+
+    if(!element){
+        return;
+    }
+
+    if(!current){
+        element.innerText = "—";
+        return;
+    }
+
+    const shifts = getData(current.date);
+
+    const list = shifts[current.shift] || [];
+
+    if(!list.length){
+        element.innerText = "—";
+        return;
+    }
+
+    const firstExecutive = sortBySeniority(
+        list.map(x => x.name)
+    )[0];
+
+    element.innerText = firstExecutive || "—";
+}
+
+function initTheme(){
+
+    let toggle = document.getElementById("toggleCheckbox");
+    if(!toggle) return;
+    let savedTheme = localStorage.getItem("theme");
+
+    // Load saved theme
+    if(savedTheme === "dark"){
+        document.body.classList.add("dark");
+        toggle.checked = true;
+    }
+
+    // Toggle event
+    toggle.addEventListener("change", function(){
+
+        if(this.checked){
+            document.body.classList.add("dark");
+            localStorage.setItem("theme","dark");
+        } else {
+            document.body.classList.remove("dark");
+            localStorage.setItem("theme","light");
+        }
+
+    });
+}
+
+function init(){ 
+
+    initTheme(); 
+
+    document.getElementById("today").innerHTML = "Loading..."; 
+
+    updateHeaderDate();
+
+    let savedCategory = localStorage.getItem("selectedCategory"); 
+    if(savedCategory){ 
+        document.getElementById("categorySelector").value = savedCategory; 
+    } 
+
+    populateNames();
+
+    setTimeout(() => {
+        let savedName = localStorage.getItem("ppu_name");
+        if(savedName){
+            selectedName = savedName;
+            document.getElementById("nameSelector").value = savedName;
+    }
+    
+    refresh();
+    renderNext7Days();
+
+}, 0);
+
+    document.getElementById("todayNote").innerHTML = getTodayNote(); 
+
+    updateHeaderDate();    
+
+    renderAlerts();
+    updateTrainingHeader(); 
+    renderTraining();
+
+    calcHoliday(); 
+    refresh(); 
+}
+
+function getFirstName(fullName){
+    if(!fullName) return "";
+    return fullName.trim().split(/\s+/)[0];
+}
+
+function populateNames(){
+
+let sel=document.getElementById("nameSelector");
+let category = document.getElementById("categorySelector")?.value;
+if(!category) return;
+
+let names=[];
+
+if(category === "exec"){
+    for(let i=1;i<data.length;i++){
+        let n=data[i][0]?.trim();
+        if(n) names.push(n);
+    }
+    names = sortBySeniority(names);
+}else{
+    for(let i=1;i<nonExecData.length;i++){
+        let n=nonExecData[i][0]?.trim();
+        if(n) names.push(n);
+    }
+    names = names.sort((a,b)=>{
+        let ia = nonExecSeniorityOrder.indexOf(a);
+        let ib = nonExecSeniorityOrder.indexOf(b);
+        if(ia === -1) ia = 999;
+        if(ib === -1) ib = 999;
+        return ia - ib;
+    });
+}
+
+sel.innerHTML = "";
+sel.add(new Option("Select Name",""));
+
+names.forEach(n => sel.add(new Option(getFirstName(n), n)));
+}
+
+function refresh(){
+    let calendarToday = formatDate(new Date());
+
+    const currentShiftInfo = getCurrentShiftInfo();
+    let today = currentShiftInfo ? currentShiftInfo.date : calendarToday;
+
+    let shift = selectedName ? (getShift(today, selectedName) || "-") : "Select Name";
+
+    const [day, month, year] = today.split("-");
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    document.getElementById("todayTitle").innerText =
+    `Today's Shift (${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year})`;
+
+let badge = document.getElementById("todayShiftBadge");
+
+/* TEXT */
+if(!selectedName){
+    badge.innerText = "Select a name to view shift";
+}else{
+    badge.innerText = "Today's Shift: " + shift;
+}
+
+/* RESET CLASS */
+badge.className = "badge";
+
+/* APPLY COLOR */
+if(shift && shift !== "-" && shift !== "Select Name"){
+
+    let primary;
+
+    if(shift.includes("C")) primary = "C";
+    else if(shift.includes("B")) primary = "B";
+    else if(shift.includes("A")) primary = "A";
+    else primary = shift;
+
+    if(primary === "O") primary = "OFF";
+
+    badge.classList.add(primary);
+}
+
+render("today", today);
+
+updatePresentShiftIncharge();
+
+renderProductionPlan();
+}
+
+function getShift(date,name){
+
+    let category =
+        document.getElementById("categorySelector")?.value;
+
+    if(!category || !date || !name){
+        return null;
+    }
+
+    let localData =
+        (category === "exec") ? data : nonExecData;
+
+    let localHeader =
+        (category === "exec") ? header : nonExecHeader;
+
+    if(!localData || !localData.length){
+        return null;
+    }
+
+    if(!localHeader || !localHeader.length){
+        return null;
+    }
+
+    let col = localHeader.indexOf(date);
+
+    if(col === -1){
+        return null;
+    }
+
+    for(let i = 1; i < localData.length; i++){
+
+        let row = localData[i];
+
+        if(!row || !row.length){
+            continue;
+        }
+
+        let rowName = row[0]?.trim();
+
+        if(rowName === name){
+
+            return row[col]?.trim() || null;
+        }
+    }
+
+    return null;
+}
+
+function parseShift(shift){
+
+    if(!shift) return [];
+
+    shift = shift.trim();
+
+    // Keep OFF as single unit
+    if(shift === "OFF") return ["OFF"];
+
+    // Split A, B, C, etc.
+    return shift.match(/[A-Z]/g) || [];
+}
+
+function getData(date){
+    let col = header.indexOf(date);
+    if(col === -1) return {};
+    let shifts={};
+
+for(let i=1;i<data.length;i++){
+
+    let name=data[i][0]?.trim();
+    let shift=data[i][col]?.trim();
+    if(!shift) continue;
+
+    if(shift==="OFF"){
+    if(!shifts["OFF"]) shifts["OFF"]=[];
+    shifts["OFF"].push({name:name,multi:false});
+    continue;
+}
+
+let isMulti = (shift !== "OFF" && shift.length > 1);
+
+    parseShift(shift).forEach(s=>{
+    if(!shifts[s]) shifts[s]=[];
+    shifts[s].push({name:name,multi:isMulti});
+    });
+}
+return shifts;
+}
+
+function getNonExecData(date){
+
+    let col = nonExecHeader.indexOf(date);
+    if(col === -1) return {};
+
+    let shifts={};
+
+    for(let i=1;i<nonExecData.length;i++){
+
+        let name=nonExecData[i][0]?.trim();
+        let shift=nonExecData[i][col]?.trim();
+        if(!shift) continue;
+
+        if(shift === "OFF"){
+            if(!shifts["OFF"]) shifts["OFF"] = [];
+            shifts["OFF"].push({name:name,multi:false});
+            continue;
+        }
+
+        let isMulti = (shift !== "OFF" && shift.length > 1);
+
+        parseShift(shift).forEach(s=>{
+            if(!shifts[s]) shifts[s]=[];
+            shifts[s].push({name:name,multi:isMulti});
+        });
+    }
+
+    return shifts;
+}
+
+function render(id,date){
+
+    console.log("Render called for:", id, date);
+    let box=document.getElementById(id);
+    box.innerHTML="";
+
+let shifts = (header.indexOf(date) === -1) ? {} : getData(date);
+
+if(Object.keys(shifts).length === 0){
+
+    let msg = (id === "today")
+        ? "Shift schedule is not available for today"
+        : "Shift schedule is not available for selected date";
+
+    box.innerHTML += `<div style="color:#777;font-weight:bold; margin-bottom:10px;">
+    ${msg}
+    </div>`;
+}
+
+let hasExec = Object.values(shifts).some(arr => arr.length > 0);
+
+if(hasExec){
+    box.innerHTML += `<div class="section-header exec-header">Executive</div>`;
+}
+
+/* MAIN */
+["A","B","C","G","OFF","L","T"].forEach(s=>{
+
+let list=shifts[s]||[];
+if(list.length === 0) return;
+
+list = sortBySeniority(list.map(x=>x.name))
+       .map(n => list.find(x=>x.name===n));
+
+let alert=(["A","B","C"].includes(s)&&list.length<=2)?" ❗":"";
+
+let chips=list.map(obj=>{
+let sel=(selectedName && obj.name===selectedName)?"selected":"";
+let multi=obj.multi?" ❕":"";
+let active = "";
+let current = getCurrentShiftInfo();
+
+if(current && s === current.shift && date === current.date){
+    active = "active-shift";
+}
+
+return `<span class="chip ${s} ${sel} ${active}">${getFirstName(obj.name)}${multi}</span>`;
+}).join("");
+
+let activeClass = "";
+let current = getCurrentShiftInfo();
+
+if(current && s === current.shift && date === current.date){
+    activeClass = "shift-active-box";
+}
+
+box.innerHTML += `
+<div class="${activeClass}">
+    <div class="shift-title">${shiftLabels[s]} (${list.length})${alert}</div>
+    ${chips || "-"}
+</div>`;
+});
+
+/* D N */
+["D","N"].forEach(s=>{
+
+let list=shifts[s]||[];
+if(list.length===0) return;
+
+list = sortBySeniority(list.map(x=>x.name))
+       .map(n => list.find(x=>x.name===n));
+
+let chips=list.map(obj=>{
+let sel=(selectedName && obj.name===selectedName)?"selected":"";
+let multi=obj.multi?" ❕":"";
+let active = "";
+let current = getCurrentShiftInfo();
+
+if(current && s === current.shift && date === current.date){
+    active = "active-shift";
+}
+
+return `<span class="chip ${s} ${sel} ${active}">${getFirstName(obj.name)}${multi}</span>`;
+}).join("");
+
+box.innerHTML+=`<div class="shift-title">${shiftLabels[s]} (${list.length})</div>${chips}`;
+});
+
+// ================= NON-EXEC (FIXED - SINGLE RENDER) =================
+
+let nonExecShifts = (nonExecHeader.indexOf(date) === -1) ? {} : getNonExecData(date);
+
+let hasNonExec = Object.values(nonExecShifts).some(arr => arr.length > 0);
+
+if(hasNonExec){
+
+    box.innerHTML += `<hr><div class="section-header nonexec-header">Non-Executive</div>`;
+
+    ["A","B","C","G","OFF","L","T","D","N"].forEach(s=>{
+
+        let list = nonExecShifts[s] || [];
+        if(list.length === 0) return;
+
+        list = list.sort((a,b)=>{
+            let ia = nonExecSeniorityOrder.indexOf(a.name);
+            let ib = nonExecSeniorityOrder.indexOf(b.name);
+            if(ia === -1) ia = 999;
+            if(ib === -1) ib = 999;
+            return ia - ib;
+        });
+
+        let alert = (["A","B","C"].includes(s) && list.length <= 2) ? " ❗" : "";
+        let chips = list.map(obj=>{
+            let sel=(selectedName && obj.name===selectedName)?"selected":"";
+            let multi=obj.multi?" ❕":"";
+            return `<span class="chip ${s} ${sel}">${getFirstName(obj.name)}${multi}</span>`;
+        }).join("");
+
+        let activeClass = "";
+let current = getCurrentShiftInfo();
+
+if(current && s === current.shift && date === current.date){
+    activeClass = "shift-active-box";
+}
+
+box.innerHTML += `
+<div class="${activeClass}">
+    <div class="shift-title">${shiftLabels[s]} (${list.length})${alert}</div>
+    ${chips}
+</div>`;
+    });
+}
+}
+function renderSelected(){
+    let val=document.getElementById("datePicker").value;
+    if(!val) return;
+
+    let d=new Date(val);
+    let formatted = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+    });
+
+let renderDate = formatDate(d);
+
+document.getElementById("selectedTitle").innerText =
+"Selected Date Shift ("+formatted+")";
+
+render("selected",renderDate);
+}
+
+function renderTraining(){
+
+    let box = document.getElementById("trainingSection");
+    box.innerHTML = "";
+
+    let refDate = new Date();
+
+    let month = ("0"+(refDate.getMonth()+1)).slice(-2);
+
+    let filtered = trainings.filter(t => {
+        if(!t.date) return false;
+
+        let first = t.date.split("to")[0].trim();
+        if(!first || !first.includes("-")) return false;
+
+        let parts = first.split("-");
+        if(parts.length < 2) return false;
+
+    return String(parseInt(parts[1])) === String(parseInt(month));
+    });
+
+    if(filtered.length === 0){
+        box.innerHTML = `
+        <div style="color:#777;font-weight:bold;">
+        No training scheduled for the month yet
+        </div>`;
+        return;
+    }
+
+    filtered.sort((a,b)=>{ 
+
+        let da = a.date.split("to")[0].trim(); 
+        let db = b.date.split("to")[0].trim(); 
+
+        let [d1,m1] = da.split("-"); 
+        let [d2,m2] = db.split("-"); 
+
+        let year = new Date().getFullYear();
+
+        return new Date(year, m1-1, d1) - new Date(year, m2-1, d2); 
+
+    });
+
+    let today = new Date();
+    today.setHours(0,0,0,0);
+
+    filtered.forEach(t=>{
+
+    // --- extract start & end date ---
+    let parts = t.date.split("to").map(x=>x.trim());
+
+    let [sd, sm] = parts[0].split("-");
+    let startDate = new Date(today.getFullYear(), sm-1, sd);
+
+    let endDate = startDate;
+
+    if(parts.length > 1){
+        let [ed, em] = parts[1].split("-");
+        endDate = new Date(today.getFullYear(), em-1, ed);
+    }
+
+    // --- status check ---
+    let isPast = endDate < today;
+    let isToday = (startDate <= today && endDate >= today);
+
+    let extraClass = "";
+
+    if(isPast){
+        extraClass = "past-training";
+    } else if(isToday){
+        extraClass = "today-training";
+    } else {
+        extraClass = "upcoming-training";
+    }
+
+    box.innerHTML += `
+    <div class="training-item ${extraClass}">
+        
+        <!-- Line 1 -->
+        <div class="training-name" style="font-weight:bold;">
+            ${isToday ? "🟢 " : isPast ? "⚪ " : "🟡 "} ${t.date.split("to").map(d => {
+                const [day, month] = d.trim().split("-");
+                const monthName = new Date(2000, Number(month) - 1, 1)
+                   .toLocaleString("en-US", { month: "short" });
+                return `${day} ${monthName}`;
+        }).join(" to ")} — ${t.name}
+        </div>
+
+        <!-- Line 2 -->
+        <div class="training-type">
+            ${t.type}
+        </div>
+
+    </div>
+    `;
+});
+}
+
+function renderProductionPlan(){
+
+    const title = document.getElementById("productionPlanMonth");
+    const targetBox = document.getElementById("productionTargets");
+    const body = document.getElementById("productionPlanBody");
+
+    if(!title || !targetBox || !body){
+        return;
+    }
+
+    const today = new Date();
+
+    const monthName = today.toLocaleString("en-US", {
+        month: "long"
+    });
+
+    const currentMonth =
+        String(today.getMonth() + 1).padStart(2, "0");
+
+    const currentYear =
+        today.getFullYear();
+
+    const currentMonthKey =
+        currentMonth + "-" + currentYear;
+
+    /* MONTH TITLE */
+
+    title.innerText = monthName + " " + currentYear;
+
+
+    /* =========================
+       PRODUCTION TARGETS
+       ========================= */
+
+    const targetOrder = ["WH034", "IH120N", "FH110N"];
+
+    const targets = productionTargets
+        .filter(r => r.month === currentMonthKey)
+        .sort((a, b) =>
+            targetOrder.indexOf(a.grade) - targetOrder.indexOf(b.grade)
+    );
+
+    targetBox.innerHTML = "";
+
+    if(targets.length){
+
+        targetBox.innerHTML = targets.map((r, i) => {
+
+    const gradeClass =
+        i === 0 ? "grade1" :
+        i === 1 ? "grade2" :
+        "grade3";
+
+    return `
+        <span class="production-target ${gradeClass}">
+            ${r.grade}: ${r.quantity} MT
+        </span>
+    `;
+
+}).join("");
+
+    }
+
+
+    /* =========================
+       PRODUCTION PLAN
+       ========================= */
+
+    const plans = productionPlans.filter(r => {
+
+        const parts = r.from.split("-");
+
+        if(parts.length !== 3){
+            return false;
+        }
+
+        const month = parts[1];
+        const year = parts[2];
+
+        return month === currentMonth &&
+               Number(year) === currentYear;
+    });
+
+    body.innerHTML = "";
+
+    if(!plans.length){
+
+        document.getElementById("productionEmpty").style.display = "block";
+        document.getElementById("productionTableWrap").style.display = "none";
+
+        body.innerHTML = "";
+
+        return;
+    }
+
+
+    /* =========================
+       PLAN ROWS
+       ========================= */
+
+    document.getElementById("productionEmpty").style.display = "none";
+    document.getElementById("productionTableWrap").style.display = "block";
+    
+    plans.forEach(plan => {
+
+        const fromParts =
+            plan.from.split("-").map(Number);
+
+        const toParts =
+            plan.to.split("-").map(Number);
+
+        const fromDate =
+            new Date(
+                fromParts[2],
+                fromParts[1] - 1,
+                fromParts[0]
+            );
+
+        const toDate =
+            new Date(
+                toParts[2],
+                toParts[1] - 1,
+                toParts[0]
+            );
+
+
+        const days =
+            Math.floor(
+                (toDate - fromDate) /
+                (1000 * 60 * 60 * 24)
+            ) + 1;
+
+
+        const isToday =
+            today >= fromDate &&
+            today <= toDate;
+        const isPast = toDate < today;
+
+
+        const duration =
+            fromParts[1] === toParts[1]
+                ? `${String(fromParts[0]).padStart(2,"0")}-${String(toParts[0]).padStart(2,"0")} ${fromDate.toLocaleString("en-US",{month:"short"})}`
+                : `${String(fromParts[0]).padStart(2,"0")} ${fromDate.toLocaleString("en-US",{month:"short"})}-${String(toParts[0]).padStart(2,"0")} ${toDate.toLocaleString("en-US",{month:"short"})}`;
+
+
+        const row =
+            document.createElement("tr");
+
+        if(isToday){
+            row.classList.add("production-today");
+        }else if(isPast){
+            row.classList.add("production-past");
+        }
+
+        row.innerHTML = `
+            <td>
+                <div class="production-duration">${duration}</div>
+            </td>
+            <td>
+                <div class="production-days">${days}</div>
+            </td>
+            <td>
+                <div class="production-grade">${plan.grade}</div>
+            </td>
+        `;
+
+        body.appendChild(row);
+
+    });
+
+}
+
+function renderNext7Days(){ 
+ 
+        let box = document.getElementById("next7Days"); 
+        if(!box) return; 
+ 
+        if(!header || header.length === 0 || !data || data.length === 0){
+            box.innerHTML = "<div style='color:#777;font-weight:bold;'>Shift schedule is not available</div>";
+            return;
+        }
+
+        if(!selectedName){ 
+            box.innerHTML = "<div style='color:#777;'>Select name to view upcoming shifts</div>"; 
+            return; 
+        } 
+        let today = new Date();
+        let html = "";
+
+        for(let i=0;i<7;i++){
+
+        let d = new Date(today);
+        d.setDate(today.getDate() + i);
+        let dayNames = ["S","M","T","W","T","F","S"];
+        let dayLabel = dayNames[d.getDay()];
+
+        let dd = String(d.getDate()).padStart(2,'0');
+        let mm = String(d.getMonth()+1).padStart(2,'0');
+        let yyyy = d.getFullYear();
+
+        let dateStr = `${dd}-${mm}-${yyyy}`;
+
+        let rawShift = getShift(dateStr, selectedName) || "-";
+
+        let shiftClass;
+        if(rawShift === "-"){
+            shiftClass = "NA";
+        } else if(rawShift === "OFF"){
+            shiftClass = "OFF";
+        } else {
+            shiftClass = rawShift.match(/[A-Z]/)?.[0] || "";
+        }
+
+        let shiftText = rawShift;
+
+        html += ` 
+        <div class="day-card">
+            <div class="day-name">${dayLabel}</div> 
+            <div class="day-date">${dd}</div> 
+            <div class="day-shift ${shiftClass}"> 
+                ${shiftText} 
+            </div> 
+        </div> 
+        `;
+    }
+
+    box.innerHTML = html;
+}
+
+function onNameChange(){
+    selectedName=document.getElementById("nameSelector").value;
+    localStorage.setItem("ppu_name",selectedName);
+    refresh();
+    if(document.getElementById("datePicker").value){
+    renderSelected();
+}
+renderNext7Days();
+}
+
+function onCategoryChange(){
+
+    let category = document.getElementById("categorySelector").value;
+    localStorage.setItem("selectedCategory", category);
+
+    selectedName = "";
+
+    localStorage.removeItem("ppu_name");
+
+    document.getElementById("nameSelector").innerHTML = '<option value="">Select Name</option>';
+
+    document.getElementById("today").innerHTML = "";
+    document.getElementById("selected").innerHTML = "";
+
+    populateNames();
+
+    refresh();
+    renderNext7Days();
+}
+
+function fetchCSV(url, optional = false){
+
+    return fetch(url, { cache: "no-store" })
+        .then(response => {
+
+            if(!response.ok){
+                throw new Error("CSV not found: " + url);
+            }
+
+            return response.text();
+        })
+        .catch(err => {
+
+            console.warn("CSV load failed:", url, err);
+
+            if(optional){
+                return "";
+            }
+
+            throw err;
+        });
+}
+
+function autoRefreshData(){
+
+    console.log("🔄 Auto refresh triggered");
+
+    updateShiftUrls();
+
+    Promise.all([
+        fetchCSV(shiftUrl),
+        fetchCSV(shiftUrlNext, true),
+        fetchCSV(holidayUrl, true),
+        fetchCSV(notesUrl, true),
+        fetchCSV(trainingUrl, true),
+        fetchCSV(productionPlanUrl, true),
+        fetchCSV(productionTargetUrl, true),
+        fetchCSV(nonExecUrl),
+        fetchCSV(nonExecUrlNext, true),
+        fetchCSV(seniorityExecUrl, true),
+        fetchCSV(seniorityNonExecUrl, true),
+        fetchCSV(alertsUrl, true)
+    ])
+
+    .then(([
+        shiftTextCurrent,
+        shiftTextNext,
+        holidayText,
+        notesText,
+        trainingText,
+        productionPlanText,
+        productionTargetText,
+        nonExecTextCurrent,
+        nonExecTextNext,
+        seniorityExecText,
+        seniorityNonExecText,
+        alertsText
+    ]) => {
+
+        updateHeaderDate();
+
+        loadSeniority(
+            seniorityExecText,
+            seniorityNonExecText
+        );
+
+/* =========================
+   ALERT DATA
+   ========================= */
+
+if(alertsText !== undefined){
+
+    alertsData = parseCSV(alertsText)
+        .slice(1)
+        .map(row => {
+
+            return {
+                from: row[0]?.trim(),
+                to: row[1]?.trim(),
+                repeat: row[2]?.trim(),
+                text: row[3]?.trim()
+            };
+
+        })
+        .filter(r =>
+            r.from &&
+            r.to &&
+            r.repeat &&
+            r.text
+        );
+
+}
+
+
+        /* =========================
+           EXECUTIVE DATA
+           ========================= */
+
+        const dataCurrent = parseCSV(shiftTextCurrent);
+        const dataNext = parseCSV(shiftTextNext);
+
+        data = mergeShiftData(dataCurrent, dataNext);
+
+        header = data[0]?.map(x => x.trim()) || [];
+
+
+        /* =========================
+           HOLIDAY DATA
+           ========================= */
+
+        const holidayRows = parseCSV(holidayText);
+
+        holidays = holidayRows.slice(1).map(r => {
+
+            return {
+                date: r[0]?.trim(),
+                type: r[1]?.trim(),
+                name: r[2]?.trim()
+            };
+
+        }).filter(r => r.date);
+
+
+        /* =========================
+           TRAINING DATA
+           ========================= */
+
+        const trainingRows = parseCSV(trainingText);
+
+        trainings = trainingRows.slice(1).map(r => {
+
+            return {
+                date: r[0]?.trim(),
+                name: r[1]?.trim(),
+                type: r[2]?.trim()
+           };
+
+       }).filter(r => r.date);
+
+
+/* =========================
+   PRODUCTION PLAN DATA
+   ========================= */
+
+const productionPlanRows = parseCSV(productionPlanText);
+
+productionPlans = productionPlanRows
+    .slice(1)
+    .map(r => {
+
+        return {
+            from: r[0]?.trim(),
+            to: r[1]?.trim(),
+            grade: r[2]?.trim()
+        };
+
+    })
+    .filter(r => r.from && r.to && r.grade);
+
+
+        /* =========================
+            PRODUCTION TARGET DATA
+           ========================= */
+
+const productionTargetRows = parseCSV(productionTargetText);
+
+productionTargets = productionTargetRows
+    .slice(1)
+    .map(r => {
+
+        return {
+            month: r[0]?.trim(),
+            grade: r[1]?.trim(),
+            quantity: r[2]?.trim()
+        };
+
+    })
+    .filter(r => r.month && r.grade && r.quantity);
+
+        /* =========================
+           NOTES DATA
+           ========================= */
+
+        const noteRows = parseCSV(notesText);
+
+        notes = noteRows.slice(1).map(r => {
+
+        return {
+        date: r[0]?.trim(),
+        type: r[1]?.trim(),
+        name: r[2]?.trim(),
+        message: r[3]?.trim()
+        };
+
+        }).filter(r => r.date);
+
+
+        /* =========================
+           NON-EXECUTIVE DATA
+           ========================= */
+
+        const nonExecCurrent = parseCSV(nonExecTextCurrent);
+        const nonExecNext = parseCSV(nonExecTextNext);
+
+        nonExecData = mergeShiftData(
+            nonExecCurrent,
+            nonExecNext
+        );
+
+        nonExecHeader =
+            nonExecData[0]?.map(x => x.trim()) || [];
+
+
+        /* =========================
+           REFRESH DISPLAY
+           ========================= */
+
+        document.getElementById("todayNote").innerHTML =
+            getTodayNote();
+
+        let alertBox =
+            document.getElementById("alertSection");
+
+        renderAlerts();
+        updateTrainingHeader();
+        renderTraining();
+
+        refresh();
+        renderNext7Days();
+
+        if(document.getElementById("datePicker").value){
+            renderSelected();
+        }
+
+        calcHoliday();
+
+        console.log("✅ Data refreshed successfully");
+
+    })
+
+    .catch(err => {
+
+        console.error("Auto refresh failed:", err);
+
+        const status = document.getElementById("todayNote");
+
+        if(status){
+        status.innerText = "";
+        }
+
+    });
+}
+
+function calcHoliday(){
+
+    let today = new Date();
+    today.setHours(0,0,0,0);
+
+    let nextGH = null;
+    let nextRH = null;
+
+    holidays.forEach(h => {
+
+        if(!h.date) return;
+
+        let [d,m,y] = h.date.split("-");
+
+        let hd = new Date(
+            parseInt(y),
+            parseInt(m) - 1,
+            parseInt(d)
+        );
+
+        hd.setHours(0,0,0,0);
+
+        // Ignore today and past dates
+        if(hd <= today) return;
+
+        // Find nearest GH
+        if(h.type === "GH"){
+            if(!nextGH || hd < nextGH.dateObj){
+                nextGH = {
+                    ...h,
+                    dateObj: hd
+                };
+            }
+        }
+
+        // Find nearest RH
+        if(h.type === "RH"){
+            if(!nextRH || hd < nextRH.dateObj){
+                nextRH = {
+                    ...h,
+                    dateObj: hd
+                };
+            }
+        }
+
+    });
+
+    const ghElem = document.getElementById("nextGH");
+    const rhElem = document.getElementById("nextRH");
+
+    if(ghElem){
+        ghElem.innerText = nextGH
+            ? formatHolidayDate(nextGH.date)
+            : "—";
+    }
+
+    if(rhElem){
+        rhElem.innerText = nextRH
+            ? formatHolidayDate(nextRH.date)
+            : "—";
+    }
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js?v=1')
+    .then(() => console.log("Service Worker Registered"));
+}
+
+// ⏱ Auto refresh every 2 minutes
+setInterval(() => {
+    if(isDataLoaded) autoRefreshData();
+}, 120000);
+
+document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible" && isDataLoaded){
+        autoRefreshData();
+    }
+});
