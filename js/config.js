@@ -30,8 +30,12 @@ const seniorityNonExecUrl =
    DYNAMIC SHIFT MONTH URLS
    ========================================= */
 
+let shiftUrlPrev = "";
+let nonExecUrlPrev = "";
+
 let shiftUrl = "";
 let nonExecUrl = "";
+
 let shiftUrlNext = "";
 let nonExecUrlNext = "";
 
@@ -46,14 +50,36 @@ function updateShiftUrls(){
         String(now.getFullYear()).slice(-2);
 
     const monthKey =
-        month + year;
+    month + year;
 
-    const nextDate =
-        new Date(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            1
-        );
+
+/* PREVIOUS MONTH */
+
+const prevDate =
+    new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        1
+    );
+
+const prevMonth =
+    String(prevDate.getMonth() + 1).padStart(2, "0");
+
+const prevYear =
+    String(prevDate.getFullYear()).slice(-2);
+
+const prevMonthKey =
+    prevMonth + prevYear;
+
+
+/* NEXT MONTH */
+
+const nextDate =
+    new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        1
+    );
 
     const nextMonth =
         String(nextDate.getMonth() + 1).padStart(2, "0");
@@ -65,19 +91,38 @@ function updateShiftUrls(){
         nextMonth + nextYear;
 
 
-    shiftUrl =
-        baseUrl +
-        "exec/shift_exec_" +
-        monthKey +
-        ".csv?v=" +
-        DATA_VERSION;
+    /* PREVIOUS MONTH */
 
-    nonExecUrl =
-        baseUrl +
-        "nonexec/shift_nonexec_" +
-        monthKey +
-        ".csv?v=" +
-        DATA_VERSION;
+shiftUrlPrev =
+    baseUrl +
+    "exec/shift_exec_" +
+    prevMonthKey +
+    ".csv?v=" +
+    DATA_VERSION;
+
+nonExecUrlPrev =
+    baseUrl +
+    "nonexec/shift_nonexec_" +
+    prevMonthKey +
+    ".csv?v=" +
+    DATA_VERSION;
+
+
+/* CURRENT MONTH */
+
+shiftUrl =
+    baseUrl +
+    "exec/shift_exec_" +
+    monthKey +
+    ".csv?v=" +
+    DATA_VERSION;
+
+nonExecUrl =
+    baseUrl +
+    "nonexec/shift_nonexec_" +
+    monthKey +
+    ".csv?v=" +
+    DATA_VERSION;
 
     shiftUrlNext =
         baseUrl +
