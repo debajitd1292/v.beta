@@ -174,20 +174,22 @@ function calcHoliday(){
 
     if(ghElem){
 
-        ghElem.innerText =
-            nextGH
-                ? formatHolidayDate(nextGH.date)
-                : "—";
+    ghElem.innerText =
+        nextGH
+            ? formatHolidayDate(nextGH.date) +
+              (nextGH.name ? " (" + nextGH.name + ")" : "")
+            : "—";
 
     }
 
 
     if(rhElem){
 
-        rhElem.innerText =
-            nextRH
-                ? formatHolidayDate(nextRH.date)
-                : "—";
+    rhElem.innerText =
+        nextRH
+            ? formatHolidayDate(nextRH.date) +
+              (nextRH.name ? " (" + nextRH.name + ")" : "")
+            : "—";
 
     }
 
