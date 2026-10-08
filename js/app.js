@@ -801,20 +801,3 @@ loadProductionData(
 
     });
 }
-
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js?v=1')
-    .then(() => console.log("Service Worker Registered"));
-}
-
-// ⏱ Auto refresh every 2 minutes
-setInterval(() => {
-    if(isDataLoaded) autoRefreshData();
-}, 120000);
-
-document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "visible" && isDataLoaded){
-        autoRefreshData();
-    }
-});
