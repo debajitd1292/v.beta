@@ -404,45 +404,69 @@ body.dark .badge.N { background:#9ca3af; color:black; }
     color: white;
 }
 
-.notice-alert {
-    position: relative;
+/* =========================
+   MODERN ALERT CARD
+========================= */
 
+.notice-alert {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 6px;
 
-    padding: 10px 14px 10px 16px;
-    margin-bottom: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
 
-    border-radius: 10px;
+    border-radius: 14px;
+
+    color: #991b1b;
+
+    background: linear-gradient(
+        135deg,
+        #fffafa,
+        #fff1f2
+    );
+
+    border: 1px solid rgba(185, 28, 28, 0.16);
+
+    box-shadow:
+        0 3px 12px rgba(185, 28, 28, 0.10);
+
+    text-align: left;
 
     font-size: 13px;
     font-weight: 600;
-    text-align: center;
 
-    color: #b71c1c;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
 
-    background: linear-gradient(135deg, #fff5f5, #ffe3e3);
-
-    border: 1px solid rgba(183, 28, 28, 0.25);
+.notice-alert:hover {
+    transform: translateY(-1px);
 
     box-shadow:
-        0 4px 10px rgba(183, 28, 28, 0.18),
-        0 0 12px rgba(183, 28, 28, 0.25),
-        0 0 22px rgba(183, 28, 28, 0.15);
-
-    overflow: hidden;
-
-    animation: pulseGlow 2s infinite;
+        0 5px 16px rgba(185, 28, 28, 0.14);
 }
 
-@keyframes pulseGlow {		/* ✅ Alerts */
-    0%   { box-shadow: 0 0 6px rgba(183,28,28,0.15); }
-    50%  { box-shadow: 0 0 14px rgba(183,28,28,0.35); }
-    100% { box-shadow: 0 0 6px rgba(183,28,28,0.15); }
+
+/* Individual alert */
+
+.notice-alert .alert-item {
+    color: #7f1d1d;
+    line-height: 1.45;
 }
+
+
+/* Multiple alerts */
+
+.notice-alert .alert-item + .alert-item {
+    margin-top: 4px;
+    padding-top: 8px;
+
+    border-top:
+        1px solid rgba(185, 28, 28, 0.10);
+}
+
 
 @keyframes blink {		/* ✅ Alerts Global */
     0% { opacity:1; }
@@ -654,21 +678,28 @@ body.dark .nonexec-header {		/* ✅ DARK Non Exec */
     border: 1px solid rgba(239,154,154,0.4);
 }
 
-body.dark .notice-alert {		/* ✅ DARK Alerts */
-    color: #ffb4b4;
+body.dark .notice-alert {
+    color: #fecaca;
 
-    background: linear-gradient(135deg, #2a0f0f, #140707);
+    background: linear-gradient(
+        135deg,
+        #241316,
+        #171014
+    );
 
-    border: 1px solid rgba(255,138,128,0.25);
+    border: 1px solid rgba(248, 113, 113, 0.18);
 
-    box-shadow: 
-        0 4px 14px rgba(0,0,0,0.6),
-        0 0 10px rgba(255,80,80,0.25),
-        0 0 20px rgba(255,50,50,0.18);
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-body.dark .notice-alert .alert-item {	/* ✅ Alerts Addtn */
-    color: #ffffff;
+body.dark .notice-alert .alert-item {
+    color: #f1f5f9;
+}
+
+body.dark .notice-alert .alert-item + .alert-item {
+    border-top-color:
+        rgba(248, 113, 113, 0.12);
 }
 
 body.dark .shift-active-box::before {
