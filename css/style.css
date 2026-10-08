@@ -184,10 +184,7 @@ h1 {
 
 .alert-item + .alert-item {
     margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(217, 151, 35, 0.10);
-    width: 100%;
-    box-sizing: border-box;
+    padding-top: 0;
 }
 
 .alert-item:last-child {
