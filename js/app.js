@@ -1,12 +1,3 @@
-const DATA_VERSION = Date.now();
-
-const now = new Date();
-
-const month = String(now.getMonth() + 1).padStart(2, '0');
-const year = String(now.getFullYear()).slice(-2);
-
-const baseUrl = "https://raw.githubusercontent.com/debajitd1292/v.beta/main/";
-
 /* =========================================
    DYNAMIC SHIFT MONTH URLS
    ========================================= */
