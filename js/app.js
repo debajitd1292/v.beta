@@ -164,21 +164,6 @@ updateLastUpdated();
     "<div style='color:red;font-weight:bold;'>Data load failed (Offline)</div>";
 });
 
-function formatDate(d){
-return ("0"+d.getDate()).slice(-2)+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+d.getFullYear();
-}
-
-
-function updateLastUpdated(){
-    let now = new Date();
-
-    let time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    let date = now.toLocaleDateString([], { day: '2-digit', month: 'short' });
-
-    document.getElementById("lastUpdated").innerText =
-        "Last Sync: " + date + " • " + time;
-}
 
 function getCurrentShiftInfo() {
     let now = new Date();
@@ -289,10 +274,6 @@ function init(){
     refresh(); 
 }
 
-function getFirstName(fullName){
-    if(!fullName) return "";
-    return fullName.trim().split(/\s+/)[0];
-}
 
 function populateNames(){
 
@@ -423,19 +404,6 @@ function getShift(date,name){
     }
 
     return null;
-}
-
-function parseShift(shift){
-
-    if(!shift) return [];
-
-    shift = shift.trim();
-
-    // Keep OFF as single unit
-    if(shift === "OFF") return ["OFF"];
-
-    // Split A, B, C, etc.
-    return shift.match(/[A-Z]/g) || [];
 }
 
 function getData(date){
