@@ -5,7 +5,7 @@
 updateShiftUrls();
 
 Promise.all([
-    fetch(shiftUrlPrev).then(r => r.text()),
+    fetchCSV(shiftUrlPrev, true),
     fetch(shiftUrl).then(r => r.text()),
     fetchCSV(shiftUrlNext, true),
     fetchCSV(holidayUrl, true),
@@ -13,6 +13,7 @@ Promise.all([
     fetch(trainingUrl).then(r => r.text()),
     fetch(productionPlanUrl).then(r => r.text()),
     fetch(productionTargetUrl).then(r => r.text()),
+    fetchCSV(nonExecUrlPrev, true),
     fetch(nonExecUrl).then(r => r.text()),
     fetch(nonExecUrlNext).then(r => r.text()),
     fetch(seniorityExecUrl).then(r => r.text()),
@@ -27,6 +28,7 @@ Promise.all([
     trainingText,
     productionPlanText,
     productionTargetText,
+    nonExecTextPrev,
     nonExecTextCurrent,
     nonExecTextNext,
     seniorityExecText,
@@ -56,20 +58,24 @@ Promise.all([
         seniorityNonExecText
     );
 
+    const dataPrev = parseCSV(shiftTextPrev);
     const dataCurrent = parseCSV(shiftTextCurrent);
     const dataNext = parseCSV(shiftTextNext);
 
     data = mergeShiftData(
+        dataPrev,
         dataCurrent,
         dataNext
     );
 
     header = data[0].map(x => x.trim());
 
+    const nonExecPrev = parseCSV(nonExecTextPrev);
     const nonExecCurrent = parseCSV(nonExecTextCurrent);
     const nonExecNext = parseCSV(nonExecTextNext);
 
     nonExecData = mergeShiftData(
+        nonExecPrev,
         nonExecCurrent,
         nonExecNext
     );
