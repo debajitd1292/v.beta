@@ -922,3 +922,20 @@ body.dark .production-table tbody tr:not(.production-today):not(.production-past
     }
 
 }
+
+#lastUpdated {
+    display: block;
+    visibility: visible;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    opacity: 0.85;
+    color: #64748b;
+}
+
+body.dark #lastUpdated {
+    display: block;
+    visibility: visible;
+    color: #94a3b8;
+    opacity: 0.9;
+}
