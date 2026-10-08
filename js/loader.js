@@ -5,6 +5,7 @@
 updateShiftUrls();
 
 Promise.all([
+    fetch(shiftUrlPrev).then(r => r.text()),
     fetch(shiftUrl).then(r => r.text()),
     fetchCSV(shiftUrlNext, true),
     fetchCSV(holidayUrl, true),
@@ -18,6 +19,7 @@ Promise.all([
     fetch(seniorityNonExecUrl).then(r => r.text())
 ])
 .then(([
+    shiftTextPrev,
     shiftTextCurrent,
     shiftTextNext,
     holidayText,
