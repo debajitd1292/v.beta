@@ -173,7 +173,24 @@ function render(id,date){
     let box=document.getElementById(id);
     box.innerHTML="";
 
-let shifts = (header.indexOf(date) === -1) ? {} : getData(date);
+const category =
+    document.getElementById("categorySelector")?.value;
+
+let shifts = {};
+
+if(category === "exec"){
+
+    shifts = (header.indexOf(date) === -1)
+        ? {}
+        : getData(date);
+
+}else{
+
+    shifts = (nonExecHeader.indexOf(date) === -1)
+        ? {}
+        : getNonExecData(date);
+
+}
 
 if(Object.keys(shifts).length === 0){
 
