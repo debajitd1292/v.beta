@@ -145,13 +145,27 @@ function renderNext7Days(){
 
     if(!box) return;
 
-    if(!header || header.length === 0 || !data || data.length === 0){
+    const category =
+    document.getElementById("categorySelector")?.value;
 
-        box.innerHTML =
-            "<div style='color:#777;font-weight:bold;'>Shift schedule is not available</div>";
+const activeData =
+    category === "exec" ? data : nonExecData;
 
-        return;
-    }
+const activeHeader =
+    category === "exec" ? header : nonExecHeader;
+
+if(
+    !activeHeader ||
+    activeHeader.length === 0 ||
+    !activeData ||
+    activeData.length === 0
+){
+
+    box.innerHTML =
+        "<div style='color:#777;font-weight:bold;'>Shift schedule is not available</div>";
+
+    return;
+}
 
     if(!selectedName){
 
