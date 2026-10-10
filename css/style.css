@@ -753,18 +753,18 @@ body.dark .badge {
 }
 
 .production-target.grade1{
-    background:linear-gradient(135deg,#e8f1ff,#dbeafe);
-    color:#1e40af;
+    background:linear-gradient(135deg,#f3e8ff,#e9d5ff);
+    color:#6b21a8;
 }
 
 .production-target.grade2{
-    background:linear-gradient(135deg,#ecfdf5,#d1fae5);
-    color:#047857;
+    background:linear-gradient(135deg,#fce7f3,#fbcfe8);
+    color:#9d174d;
 }
 
 .production-target.grade3{
-    background:linear-gradient(135deg,#fff7ed,#fed7aa);
-    color:#c2410c;
+    background:linear-gradient(135deg,#e5e7eb,#d1d5db);
+    color:#374151;
     padding:5px 8px;
     font-size:10px;
 }
@@ -865,20 +865,22 @@ body.dark .production-today td{
     background:linear-gradient(135deg,#064e3b,#022c22);
 }
 
+
 body.dark .production-target.grade1{
-    background:linear-gradient(135deg,#172554,#1e3a8a);
-    color:#bfdbfe;
+    background:linear-gradient(135deg,#3b0764,#581c87);
+    color:#e9d5ff;
 }
 
 body.dark .production-target.grade2{
-    background:linear-gradient(135deg,#064e3b,#065f46);
-    color:#a7f3d0;
+    background:linear-gradient(135deg,#831843,#9d174d);
+    color:#fce7f3;
 }
 
 body.dark .production-target.grade3{
-    background:linear-gradient(135deg,#431407,#7c2d12);
-    color:#fed7aa;
+    background:linear-gradient(135deg,#374151,#4b5563);
+    color:#f3f4f6;
 }
+
 
 /* Upcoming Production Plan */
 .production-table tbody tr:not(.production-today):not(.production-past) td:first-child{
