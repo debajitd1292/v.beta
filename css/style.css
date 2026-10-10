@@ -757,11 +757,13 @@ body.dark .badge {
 .production-target.grade1{
     background:linear-gradient(135deg,#f3e8ff,#e9d5ff);
     color:#6b3a83;
+    border:1px solid #c9a4df;
 }
 
 .production-target.grade2{
     background:linear-gradient(135deg,#fce7f3,#f5d5e6);
     color:#914568;
+    border:1px solid #e0a8c5;
 }
 
 .production-target.grade3{
@@ -769,6 +771,7 @@ body.dark .badge {
     color:#514858;
     padding:6px 10px;
     font-size:11px;
+    border:1px solid #b8afc2;
 }
 
 
@@ -873,16 +876,19 @@ body.dark .production-today td{
 body.dark .production-target.grade1{
     background:linear-gradient(135deg,#3b2548,#51345f);
     color:#ead5f5;
+    border:1px solid #805a96;
 }
 
 body.dark .production-target.grade2{
     background:linear-gradient(135deg,#54283f,#703b56);
     color:#f7d9e8;
+    border:1px solid #a45c80;
 }
 
 body.dark .production-target.grade3{
     background:linear-gradient(135deg,#38333e,#4b4452);
     color:#e8e2ed;
+    border:1px solid #777080;
 }
 
 
