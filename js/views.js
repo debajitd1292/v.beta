@@ -73,7 +73,7 @@ if(selectedHeader.indexOf(renderDate) === -1){
 
                 fetchCSV(
                     selectedExecUrl,
-                    false
+                    true
                 ),
 
                 fetchCSV(
