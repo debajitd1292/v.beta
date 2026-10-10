@@ -35,13 +35,23 @@ Promise.all([
     seniorityNonExecText
 ]) => {
 
-    if(!shiftTextCurrent || shiftTextCurrent.trim() === ""){
+    const execCurrentAvailable =
+    shiftTextCurrent &&
+    shiftTextCurrent.trim() !== "" &&
+    !shiftTextCurrent.includes("404: Not Found");
 
-        document.getElementById("today").innerHTML =
-            "<div style='color:red;font-weight:bold;'>SHIFT DATA NOT LOADED</div>";
+const nonExecCurrentAvailable =
+    nonExecTextCurrent &&
+    nonExecTextCurrent.trim() !== "" &&
+    !nonExecTextCurrent.includes("404: Not Found");
 
-        return;
-    }
+if(!execCurrentAvailable && !nonExecCurrentAvailable){
+
+    document.getElementById("today").innerHTML =
+        "<div style='color:red;font-weight:bold;'>SHIFT DATA NOT LOADED</div>";
+
+    return;
+}
 
     if(!holidayText) holidayText = "";
     if(!notesText) notesText = "";
@@ -68,7 +78,7 @@ Promise.all([
         dataNext
     );
 
-    header = data[0].map(x => x.trim());
+    header = data[0]?.map(x => x.trim()) || [];
 
     const nonExecPrev = parseCSV(nonExecTextPrev);
     const nonExecCurrent = parseCSV(nonExecTextCurrent);
