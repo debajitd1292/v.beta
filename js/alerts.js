@@ -61,7 +61,7 @@ function getActiveAlerts(){
         if(repeat === "once"){
 
             if(now >= from && now <= to){
-                active.push(a.text);
+                active.push(a);
             }
 
             return;
@@ -114,7 +114,7 @@ function getActiveAlerts(){
                 (isLastDay && currentMinutes >= fromMinutes) ||
                 (isFirstDay && currentMinutes <= toMinutes)
             ){
-                active.push(a.text);
+                active.push(a);
             }
 
             return;
@@ -143,7 +143,7 @@ function getActiveAlerts(){
                 currentMinutes >= fromMinutes &&
                 currentMinutes <= toMinutes
             ){
-                active.push(a.text);
+                active.push(a);
             }
 
             return;
@@ -175,7 +175,7 @@ function getActiveAlerts(){
                 currentMinutes >= fromMinutes &&
                 currentMinutes <= toMinutes
             ){
-                active.push(a.text);
+                active.push(a);
             }
 
             return;
@@ -205,7 +205,7 @@ function getActiveAlerts(){
                 currentMinutes >= fromMinutes &&
                 currentMinutes <= toMinutes
             ){
-                active.push(a.text);
+                active.push(a);
             }
 
             return;
@@ -236,7 +236,7 @@ function getActiveAlerts(){
                 currentMinutes >= fromMinutes &&
                 currentMinutes <= toMinutes
             ){
-                active.push(a.text);
+                active.push(a);
             }
 
             return;
@@ -351,14 +351,14 @@ function renderAlerts(){
         alertBox.innerHTML = `
             <div class="notice-alert">
                 ${alerts.map(a => `
-                    <div class="alert-item">${a}</div>
+                    <div class="alert-item">${a.text}</div>
                 `).join("")}
             </div>
         `;
 
         alertBox.style.display = "block";
 
-        triggerAlertVibration(alerts);
+        triggerAlertNotification(alerts);
 
     } else {
 
@@ -369,32 +369,116 @@ function renderAlerts(){
 }
 
 
-function triggerAlertVibration(alerts){
 
-    if(!("vibrate" in navigator)) return;
+let alertAudioContext = null;
+let pendingAlertChimes = 0;
 
-    let newKey = alerts.join("|");
+// Enable audio after the user interacts with the dashboard.
+function prepareAlertAudio() {
+    if (!alertAudioContext) {
+        const AudioContextClass =
+            window.AudioContext || window.webkitAudioContext;
 
-    let oldKey =
-        localStorage.getItem("lastAlertKey");
+        if (!AudioContextClass) return;
 
-    if(newKey && newKey !== oldKey){
-
-        navigator.vibrate([
-            200,
-            100,
-            200,
-            100,
-            400
-        ]);
-
-        localStorage.setItem(
-            "lastAlertKey",
-            newKey
-        );
+        alertAudioContext = new AudioContextClass();
     }
 
-    if(!newKey){
-        localStorage.removeItem("lastAlertKey");
+    if (alertAudioContext.state === "suspended") {
+        alertAudioContext.resume()
+            .then(() => {
+                const count = pendingAlertChimes;
+                pendingAlertChimes = 0;
+
+                for (let i = 0; i < count; i++) {
+                    setTimeout(playSoftAlertChime, i * 650);
+                }
+            })
+            .catch(() => {});
+    }
+}
+
+document.addEventListener("pointerdown", prepareAlertAudio);
+document.addEventListener("keydown", prepareAlertAudio);
+
+// Short, soft single chime.
+function playSoftAlertChime() {
+    if (!alertAudioContext) {
+        pendingAlertChimes++;
+        return;
+    }
+
+    if (alertAudioContext.state !== "running") {
+        pendingAlertChimes++;
+        prepareAlertAudio();
+        return;
+    }
+
+    const ctx = alertAudioContext;
+    const now = ctx.currentTime;
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(880, now);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.12, now + 0.035);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.46);
+}
+
+function triggerAlertNotification(alerts) {
+    const currentKeys = alerts.map(a =>
+        JSON.stringify([
+            a.from,
+            a.to,
+            (a.repeat || "once").trim().toLowerCase(),
+            a.text
+        ])
+    );
+
+    let previousKeys = [];
+
+    try {
+        previousKeys = JSON.parse(
+            localStorage.getItem("activeAlertKeys") || "[]"
+        );
+
+        if (!Array.isArray(previousKeys)) {
+            previousKeys = [];
+        }
+    } catch (error) {
+        previousKeys = [];
+    }
+
+    // Only alert for records that have just become active.
+    const newKeys = currentKeys.filter(
+        key => !previousKeys.includes(key)
+    );
+
+    newKeys.forEach((key, index) => {
+        setTimeout(playSoftAlertChime, index * 650);
+    });
+
+    // One vibration sequence for newly active alert(s).
+    if (newKeys.length && "vibrate" in navigator) {
+        navigator.vibrate([150, 70, 150]);
+    }
+
+    // Store the currently active alert records.
+    try {
+        localStorage.setItem(
+            "activeAlertKeys",
+            JSON.stringify(currentKeys)
+        );
+    } catch (error) {
+        console.warn("Could not save alert notification state.");
     }
 }
