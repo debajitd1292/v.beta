@@ -8,7 +8,6 @@ let isDataLoaded = false;
 let seniorityOrder = [];
 let nonExecSeniorityOrder = [];
 
-
 const shiftLabels = {
 "A":"A Shift","B":"B Shift","C":"C Shift",
 "G":"General","OFF":"Rest / Off / Holiday",
@@ -192,7 +191,15 @@ if(category === "exec"){
 
 }
 
-if(Object.keys(shifts).length === 0){
+
+let nonExecShifts = (nonExecHeader.indexOf(date) === -1)
+    ? {}
+    : getNonExecData(date);
+
+let hasNonExec = Object.values(nonExecShifts)
+    .some(arr => arr.length > 0);
+
+if(Object.keys(shifts).length === 0 && !hasNonExec){
 
     let msg = (id === "today")
         ? "Shift schedule is not available for today"
@@ -202,6 +209,7 @@ if(Object.keys(shifts).length === 0){
     ${msg}
     </div>`;
 }
+
 
 let hasExec = Object.values(shifts).some(arr => arr.length > 0);
 
@@ -271,12 +279,6 @@ return `<span class="chip ${s} ${sel} ${active}">${getFirstName(obj.name)}${mult
 
 box.innerHTML+=`<div class="shift-title">${shiftLabels[s]} (${list.length})</div>${chips}`;
 });
-
-// ================= NON-EXEC (FIXED - SINGLE RENDER) =================
-
-let nonExecShifts = (nonExecHeader.indexOf(date) === -1) ? {} : getNonExecData(date);
-
-let hasNonExec = Object.values(nonExecShifts).some(arr => arr.length > 0);
 
 if(hasNonExec){
 
