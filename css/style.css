@@ -969,3 +969,20 @@ body.dark .production-table tbody tr:not(.production-today):not(.production-past
     }
 
 }
+
+/* Fix date selector overflow on iPhones */
+input[type="date"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.field {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
