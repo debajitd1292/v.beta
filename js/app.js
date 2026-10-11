@@ -8,6 +8,7 @@ let isDataLoaded = false;
 let seniorityOrder = [];
 let nonExecSeniorityOrder = [];
 
+
 const shiftLabels = {
 "A":"A Shift","B":"B Shift","C":"C Shift",
 "G":"General","OFF":"Rest / Off / Holiday",
@@ -172,34 +173,9 @@ function render(id,date){
     let box=document.getElementById(id);
     box.innerHTML="";
 
-const category =
-    document.getElementById("categorySelector")?.value;
+let shifts = (header.indexOf(date) === -1) ? {} : getData(date);
 
-let shifts = {};
-
-if(category === "exec"){
-
-    shifts = (header.indexOf(date) === -1)
-        ? {}
-        : getData(date);
-
-}else{
-
-    shifts = (nonExecHeader.indexOf(date) === -1)
-        ? {}
-        : getNonExecData(date);
-
-}
-
-
-let nonExecShifts = (nonExecHeader.indexOf(date) === -1)
-    ? {}
-    : getNonExecData(date);
-
-let hasNonExec = Object.values(nonExecShifts)
-    .some(arr => arr.length > 0);
-
-if(Object.keys(shifts).length === 0 && !hasNonExec){
+if(Object.keys(shifts).length === 0){
 
     let msg = (id === "today")
         ? "Shift schedule is not available for today"
@@ -209,7 +185,6 @@ if(Object.keys(shifts).length === 0 && !hasNonExec){
     ${msg}
     </div>`;
 }
-
 
 let hasExec = Object.values(shifts).some(arr => arr.length > 0);
 
@@ -280,16 +255,15 @@ return `<span class="chip ${s} ${sel} ${active}">${getFirstName(obj.name)}${mult
 box.innerHTML+=`<div class="shift-title">${shiftLabels[s]} (${list.length})</div>${chips}`;
 });
 
+// ================= NON-EXEC (FIXED - SINGLE RENDER) =================
+
+let nonExecShifts = (nonExecHeader.indexOf(date) === -1) ? {} : getNonExecData(date);
+
+let hasNonExec = Object.values(nonExecShifts).some(arr => arr.length > 0);
+
 if(hasNonExec){
 
-    
-box.innerHTML += `
-    <div class="section-header nonexec-header"
-         style="display:block; color:#b4232c; font-weight:700; margin:16px 0;">
-        NON-EXECUTIVE
-    </div>
-`;
-
+    box.innerHTML += `<hr><div class="section-header nonexec-header">Non-Executive</div>`;
 
     ["A","B","C","G","OFF","L","T","D","N"].forEach(s=>{
 
@@ -455,19 +429,19 @@ if(alertsText !== undefined){
         if (lastUpdatedEl) {
             const now = new Date();
 
-        const time = now.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
+            const time = now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
 
-        const date = now.toLocaleDateString([], {
-            day: "2-digit",
-            month: "short"
-        });
+            const date = now.toLocaleDateString([], {
+                day: "2-digit",
+                month: "short"
+            });
 
-        lastUpdatedEl.innerText =
-            "Last Sync: " + date + " • " + time;
-    }
+            lastUpdatedEl.innerText =
+                "Last Sync: " + date + " • " + time;
+        }
 
     })
 

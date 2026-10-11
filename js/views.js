@@ -27,13 +27,7 @@ async function renderSelected(){
        LOADED
        ========================================= */
 
-    const selectedCategory =
-    document.getElementById("categorySelector")?.value;
-
-const selectedHeader =
-    selectedCategory === "exec" ? header : nonExecHeader;
-
-if(selectedHeader.indexOf(renderDate) === -1){
+    if(header.indexOf(renderDate) === -1){
 
         const month =
             String(d.getMonth() + 1).padStart(2, "0");
@@ -73,7 +67,7 @@ if(selectedHeader.indexOf(renderDate) === -1){
 
                 fetchCSV(
                     selectedExecUrl,
-                    true
+                    false
                 ),
 
                 fetchCSV(
@@ -151,27 +145,13 @@ function renderNext7Days(){
 
     if(!box) return;
 
-    const category =
-    document.getElementById("categorySelector")?.value;
+    if(!header || header.length === 0 || !data || data.length === 0){
 
-const activeData =
-    category === "exec" ? data : nonExecData;
+        box.innerHTML =
+            "<div style='color:#777;font-weight:bold;'>Shift schedule is not available</div>";
 
-const activeHeader =
-    category === "exec" ? header : nonExecHeader;
-
-if(
-    !activeHeader ||
-    activeHeader.length === 0 ||
-    !activeData ||
-    activeData.length === 0
-){
-
-    box.innerHTML =
-        "<div style='color:#777;font-weight:bold;'>Shift schedule is not available</div>";
-
-    return;
-}
+        return;
+    }
 
     if(!selectedName){
 
