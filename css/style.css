@@ -754,25 +754,27 @@ body.dark .badge {
 
 
 
-.production-target.grade1{
-    background:linear-gradient(135deg,#f3e8ff,#e9d5ff);
-    color:#6b3a83;
-    border:1px solid #c9a4df;
+
+.production-target.grade1 {
+    background: linear-gradient(135deg, #e8f1ff, #dbeafe);
+    color: #1e40af;
+    border: 1px solid #93baf8;
 }
 
-.production-target.grade2{
-    background:linear-gradient(135deg,#fce7f3,#f5d5e6);
-    color:#914568;
-    border:1px solid #e0a8c5;
+.production-target.grade2 {
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    color: #7e22ce;
+    border: 1px solid #c084fc;
 }
 
-.production-target.grade3{
-    background:linear-gradient(135deg,#e9e7eb,#d8d4dc);
-    color:#514858;
-    padding:6px 10px;
-    font-size:11px;
-    border:1px solid #b8afc2;
+.production-target.grade3 {
+    background: linear-gradient(135deg, #fff7ed, #fed7aa);
+    color: #c2410c;
+    border: 1px solid #fdba74;
+    padding: 5px 8px;
+    font-size: 10px;
 }
+
 
 
 /* Production schedule */
@@ -873,23 +875,26 @@ body.dark .production-today td{
 
 
 
-body.dark .production-target.grade1{
-    background:linear-gradient(135deg,#3b2548,#51345f);
-    color:#ead5f5;
-    border:1px solid #805a96;
+
+/* Dark Mode — Production Target Capsules */
+.dark-mode .production-target.grade1 {
+    background: linear-gradient(135deg, #1e2d46, #263b5c);
+    color: #bfdbfe;
+    border: 1px solid #527db8;
 }
 
-body.dark .production-target.grade2{
-    background:linear-gradient(135deg,#54283f,#703b56);
-    color:#f7d9e8;
-    border:1px solid #a45c80;
+.dark-mode .production-target.grade2 {
+    background: linear-gradient(135deg, #352044, #45265f);
+    color: #e9d5ff;
+    border: 1px solid #9b72c7;
 }
 
-body.dark .production-target.grade3{
-    background:linear-gradient(135deg,#38333e,#4b4452);
-    color:#e8e2ed;
-    border:1px solid #777080;
+.dark-mode .production-target.grade3 {
+    background: linear-gradient(135deg, #422b1b, #593820);
+    color: #fed7aa;
+    border: 1px solid #c17a3c;
 }
+
 
 
 /* Upcoming Production Plan */
