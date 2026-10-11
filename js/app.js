@@ -282,7 +282,15 @@ box.innerHTML+=`<div class="shift-title">${shiftLabels[s]} (${list.length})</div
 
 if(hasNonExec){
 
-    box.innerHTML += `<hr><div class="section-header nonexec-header">Non-Executive</div>`;
+    
+box.innerHTML += `
+    <hr>
+    <div class="section-header nonexec-header"
+         style="display:block; color:#b4232c; font-weight:700; margin:16px 0;">
+        NON-EXECUTIVE
+    </div>
+`;
+
 
     ["A","B","C","G","OFF","L","T","D","N"].forEach(s=>{
 
