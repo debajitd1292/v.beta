@@ -1,6 +1,5 @@
 let alertsData = [];
 
-
 function parseAlertDateTime(value){
 
     if(!value) return null;
@@ -35,7 +34,6 @@ function parseAlertDateTime(value){
     );
 }
 
-
 function getActiveAlerts(){
 
     let now = new Date();
@@ -53,11 +51,6 @@ function getActiveAlerts(){
 
         let repeat = (a.repeat || "once").trim().toLowerCase();
 
-
-        /* =========================
-           ONCE
-           ========================= */
-
         if(repeat === "once"){
 
             if(now >= from && now <= to){
@@ -68,20 +61,9 @@ function getActiveAlerts(){
         }
 
 
-        /* =========================
-           VALIDITY PERIOD
-           ========================= */
-
         if(now < from || now > to){
             return;
         }
-
-
-        /* =========================
-           MONTH-END
-           Last day 10:00 AM
-           to first day 06:00 AM
-           ========================= */
 
         if(repeat === "month-end"){
 
@@ -120,11 +102,6 @@ function getActiveAlerts(){
             return;
         }
 
-
-        /* =========================
-           DAILY
-           ========================= */
-
         if(repeat === "daily"){
 
             let currentMinutes =
@@ -148,11 +125,6 @@ function getActiveAlerts(){
 
             return;
         }
-
-
-        /* =========================
-           WEEKLY
-           ========================= */
 
         if(repeat === "weekly"){
 
@@ -181,11 +153,6 @@ function getActiveAlerts(){
             return;
         }
 
-
-        /* =========================
-           MONTHLY
-           ========================= */
-
         if(repeat === "monthly"){
 
             let currentMinutes =
@@ -210,11 +177,6 @@ function getActiveAlerts(){
 
             return;
         }
-
-
-        /* =========================
-           YEARLY
-           ========================= */
 
         if(repeat === "yearly"){
 
@@ -246,7 +208,6 @@ function getActiveAlerts(){
 
     return active;
 }
-
 
 function loadAlerts(){
 
@@ -290,7 +251,6 @@ function loadAlerts(){
             const textIndex =
                 header.indexOf("alarm text");
 
-
             alertsData = rows
                 .slice(1)
                 .map(row => {
@@ -318,7 +278,6 @@ function loadAlerts(){
                     a.text
                 );
 
-
             renderAlerts();
 
         })
@@ -336,7 +295,6 @@ function loadAlerts(){
 
         });
 }
-
 
 function renderAlerts(){
 
@@ -368,12 +326,8 @@ function renderAlerts(){
     }
 }
 
-
-
 let alertAudioContext = null;
-let pendingAlertChimes = 0;
 
-// Enable audio after the user interacts with the dashboard.
 function prepareAlertAudio() {
     if (!alertAudioContext) {
         const AudioContextClass =
@@ -385,32 +339,17 @@ function prepareAlertAudio() {
     }
 
     if (alertAudioContext.state === "suspended") {
-        alertAudioContext.resume()
-            .then(() => {
-                const count = pendingAlertChimes;
-                pendingAlertChimes = 0;
-
-                for (let i = 0; i < count; i++) {
-                    setTimeout(playSoftAlertChime, i * 650);
-                }
-            })
-            .catch(() => {});
+        alertAudioContext.resume().catch(() => {});
     }
 }
+
 
 document.addEventListener("pointerdown", prepareAlertAudio);
 document.addEventListener("keydown", prepareAlertAudio);
 
-// Short, soft single chime.
 function playSoftAlertChime() {
-    if (!alertAudioContext) {
-        pendingAlertChimes++;
-        return;
-    }
-
-    if (alertAudioContext.state !== "running") {
-        pendingAlertChimes++;
-        prepareAlertAudio();
+    if (!alertAudioContext ||
+        alertAudioContext.state !== "running") {
         return;
     }
 
@@ -424,7 +363,7 @@ function playSoftAlertChime() {
     oscillator.frequency.setValueAtTime(880, now);
 
     gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.12, now + 0.035);
+    gain.gain.linearRampToValueAtTime(0.08, now + 0.035);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
 
     oscillator.connect(gain);
@@ -433,6 +372,7 @@ function playSoftAlertChime() {
     oscillator.start(now);
     oscillator.stop(now + 0.46);
 }
+
 
 function triggerAlertNotification(alerts) {
     const currentKeys = alerts.map(a =>
@@ -458,7 +398,6 @@ function triggerAlertNotification(alerts) {
         previousKeys = [];
     }
 
-    // Only alert for records that have just become active.
     const newKeys = currentKeys.filter(
         key => !previousKeys.includes(key)
     );
@@ -467,12 +406,6 @@ function triggerAlertNotification(alerts) {
         setTimeout(playSoftAlertChime, index * 650);
     });
 
-    // One vibration sequence for newly active alert(s).
-    if (newKeys.length && "vibrate" in navigator) {
-        navigator.vibrate([150, 70, 150]);
-    }
-
-    // Store the currently active alert records.
     try {
         localStorage.setItem(
             "activeAlertKeys",
