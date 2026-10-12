@@ -316,102 +316,10 @@ function renderAlerts(){
 
         alertBox.style.display = "block";
 
-        triggerAlertNotification(alerts);
-
     } else {
 
         alertBox.innerHTML = "";
 
         alertBox.style.display = "none";
-    }
-}
-
-let alertAudioContext = null;
-
-function prepareAlertAudio() {
-    if (!alertAudioContext) {
-        const AudioContextClass =
-            window.AudioContext || window.webkitAudioContext;
-
-        if (!AudioContextClass) return;
-
-        alertAudioContext = new AudioContextClass();
-    }
-
-    if (alertAudioContext.state === "suspended") {
-        alertAudioContext.resume().catch(() => {});
-    }
-}
-
-
-document.addEventListener("pointerdown", prepareAlertAudio);
-document.addEventListener("keydown", prepareAlertAudio);
-
-function playSoftAlertChime() {
-    if (!alertAudioContext ||
-        alertAudioContext.state !== "running") {
-        return;
-    }
-
-    const ctx = alertAudioContext;
-    const now = ctx.currentTime;
-
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, now);
-
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.08, now + 0.035);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-
-    oscillator.start(now);
-    oscillator.stop(now + 0.46);
-}
-
-
-function triggerAlertNotification(alerts) {
-    const currentKeys = alerts.map(a =>
-        JSON.stringify([
-            a.from,
-            a.to,
-            (a.repeat || "once").trim().toLowerCase(),
-            a.text
-        ])
-    );
-
-    let previousKeys = [];
-
-    try {
-        previousKeys = JSON.parse(
-            localStorage.getItem("activeAlertKeys") || "[]"
-        );
-
-        if (!Array.isArray(previousKeys)) {
-            previousKeys = [];
-        }
-    } catch (error) {
-        previousKeys = [];
-    }
-
-    const newKeys = currentKeys.filter(
-        key => !previousKeys.includes(key)
-    );
-
-    newKeys.forEach((key, index) => {
-        setTimeout(playSoftAlertChime, index * 650);
-    });
-
-    try {
-        localStorage.setItem(
-            "activeAlertKeys",
-            JSON.stringify(currentKeys)
-        );
-    } catch (error) {
-        console.warn("Could not save alert notification state.");
     }
 }
